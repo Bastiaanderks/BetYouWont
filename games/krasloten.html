@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krasloten - BetYouWon't</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">Bet<span>You</span>Won't</div>
+        <a href="../index.html">← Terug</a>
+        <div class="balance">Saldo: <span id="balanceDisplay">€1000</span></div>
+    </header>
+
+    <main class="game-page">
+        <h1>Krasloten</h1>
+        <p>Kras alle vakjes open. 3 dezelfde symbolen = winst!</p>
+
+        <div class="bet-controls">
+            <label for="betInput">Inzet: €</label>
+            <input type="number" id="betInput" value="10" min="1">
+            <button id="startBtn" class="btn-primary">Koop kraslot</button>
+        </div>
+
+        <div class="krasloten-wrapper">
+            <div class="krasloten-grid locked" id="krasotenGrid">
+                <!-- vakjes worden door JS neergezet -->
+            </div>
+
+            <div class="grid-overlay" id="gridOverlay">
+                <div class="overlay-icon">🔒</div>
+                <p>Koop een kraslot om te beginnen</p>
+            </div>
+        </div>
+
+        <p id="resultMessage"></p>
+    </main>
+
+    <script src="../balance.js"></script>
+    <script src="krasloten.js"></script>
+</body>
+</html>

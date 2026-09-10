@@ -1,0 +1,349 @@
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: #0d0b1a;
+    color: #f1f1f1;
+}
+
+a {
+    color: inherit;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: #14112b;
+    border-bottom: 1px solid #2a2450;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo span {
+    color: #c9a4ff;
+}
+
+.navbar nav a {
+    color: #ccc;
+    text-decoration: none;
+    margin: 0 15px;
+    transition: color 0.2s;
+}
+
+.navbar nav a:hover {
+    color: #c9a4ff;
+}
+
+.balance {
+    background: #1f1a3d;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #c9a4ff44;
+}
+
+.balance span {
+    color: #ffd166;
+    font-weight: bold;
+}
+
+/* ===== HERO (homepage) ===== */
+.hero {
+    text-align: center;
+    padding: 100px 20px;
+    background: radial-gradient(circle at top, #24184d 0%, #0d0b1a 70%);
+}
+
+.hero h1 {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+}
+
+.hero h1 span {
+    color: #ffd166;
+}
+
+.hero p {
+    color: #bbb;
+    margin-bottom: 30px;
+}
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+    display: inline-block;
+    background: linear-gradient(90deg, #7b3fe4, #c9a4ff);
+    color: #14112b;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid #c9a4ff;
+    color: #c9a4ff;
+    padding: 8px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #c9a4ff;
+    color: #14112b;
+}
+
+/* ===== GAMES OVERZICHT (homepage) ===== */
+.games {
+    padding: 60px 40px;
+}
+
+.games h2 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 2rem;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+.game-card {
+    background: #14112b;
+    border: 1px solid #2a2450;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    border-color: #c9a4ff;
+}
+
+.game-thumb {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.game-card h3 {
+    margin-bottom: 10px;
+}
+
+.game-card p {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* ===== INDIVIDUELE GAME-PAGINA'S ===== */
+.game-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.game-page h1 {
+    margin-bottom: 10px;
+}
+
+.game-page > p {
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+.bet-controls {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.bet-controls label {
+    color: #bbb;
+}
+
+.bet-controls input {
+    width: 80px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #2a2450;
+    background: #14112b;
+    color: white;
+    text-align: center;
+}
+
+/* ===== KRASLOTEN ===== */
+.krasloten-wrapper {
+    position: relative;
+    max-width: 340px;
+    margin: 30px auto 0;
+}
+
+.krasloten-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.kras-vakje {
+    background: linear-gradient(145deg, #24204a, #1a1636);
+    border: 2px solid #2a2450;
+    border-radius: 14px;
+    height: 95px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.1rem;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    box-shadow: inset 0 0 0 rgba(0,0,0,0);
+}
+
+.kras-vakje:hover {
+    background: linear-gradient(145deg, #2e2a5c, #1f1a3d);
+    border-color: #c9a4ff88;
+    transform: translateY(-2px);
+}
+
+.kras-vakje.gekrast {
+    background: #14112b;
+    border-color: #2a2450;
+    cursor: default;
+    transform: none;
+}
+
+/* leeg = vergrendelde staat, geen inhoud, geen hover-effect */
+.kras-vakje.leeg {
+    background: #16132a;
+    border: 2px dashed #2a2450;
+    cursor: default;
+}
+
+/* pop-in animatie zodra een symbool onthuld wordt */
+.kras-vakje.onthuld {
+    animation: onthullen 0.3s ease;
+}
+
+@keyframes onthullen {
+    0%   { transform: scale(0.5); opacity: 0; }
+    70%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+/* Overlay bovenop de grid als er nog niks gekocht is */
+.grid-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(13, 11, 26, 0.75);
+    backdrop-filter: blur(2px);
+    border-radius: 14px;
+    text-align: center;
+    padding: 20px;
+}
+
+.grid-overlay.verborgen {
+    display: none;
+}
+
+.overlay-icon {
+    font-size: 2.5rem;
+}
+
+.grid-overlay p {
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+/* Resultaatbericht */
+#resultMessage {
+    margin-top: 20px;
+    font-weight: bold;
+    min-height: 24px;
+    transition: color 0.2s;
+}
+
+#resultMessage.winst {
+    color: #ffd166;
+    font-size: 1.1rem;
+}
+
+/* ===== CRASH ===== */
+.crash-wrapper {
+    position: relative;
+    max-width: 500px;
+    margin: 30px auto 0;
+}
+
+#crashCanvas {
+    background: #14112b;
+    border: 1px solid #2a2450;
+    border-radius: 14px;
+    width: 100%;
+    height: auto;
+}
+
+.multiplier-display {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #c9a4ff;
+    text-shadow: 0 0 12px #c9a4ff88;
+    transition: color 0.2s;
+}
+
+.multiplier-display.gecrasht {
+    color: #ff5c5c;
+    text-shadow: 0 0 12px #ff5c5c88;
+}
+
+#cashoutBtn:disabled,
+#startBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#cashoutBtn:not(:disabled) {
+    background: #ffd166;
+    border-color: #ffd166;
+    color: #14112b;
+    font-weight: bold;
+}
+
+#cashoutBtn:not(:disabled):hover {
+    background: #ffdb85;
+}
