@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Saldo kopen - BetYouWon't</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================
+     NAVBAR
+========================================== -->
+
+<header class="navbar">
+
+    <div class="logo">
+        Bet<span>You</span>Won't
+    </div>
+
+
+    <nav>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="games.html">
+            Games
+        </a>
+
+        <a href="saldo.html" class="active">
+            Saldo kopen
+        </a>
+
+    </nav>
+
+
+    <div class="balance">
+
+        Saldo:
+        <span id="balanceDisplay">
+            €1000
+        </span>
+
+    </div>
+
+</header>
+
+
+
+<!-- ==========================================
+     SALDO PAGINA
+========================================== -->
+
+<main class="balance-page">
+
+
+    <div class="balance-header">
+
+        <h1>
+            💰 Saldo kopen
+        </h1>
+
+        <p>
+            Koop virtueel speelgeld voor je games.
+        </p>
+
+    </div>
+
+
+
+    <!-- HUIDIG SALDO -->
+
+    <div class="current-balance">
+
+        <p>
+            Je huidige saldo
+        </p>
+
+        <strong id="balanceDisplay">
+            €1000
+        </strong>
+
+    </div>
+
+
+
+    <!-- BUNDELS -->
+
+    <section class="packages">
+
+
+        <!-- €500 -->
+
+        <div class="money-card">
+
+            <div class="money-icon">
+                💵
+            </div>
+
+            <h2>
+                €500
+            </h2>
+
+            <p>
+                500 credits
+            </p>
+
+            <button
+                class="buy-button"
+                onclick="koopSaldo(500)"
+            >
+                Koop €500
+            </button>
+
+        </div>
+
+
+
+        <!-- €1000 -->
+
+        <div class="money-card featured">
+
+            <div class="popular">
+                POPULAIR
+            </div>
+
+            <div class="money-icon">
+                💰
+            </div>
+
+            <h2>
+                €1.000
+            </h2>
+
+            <p>
+                1.000 credits
+            </p>
+
+            <button
+                class="buy-button"
+                onclick="koopSaldo(1000)"
+            >
+                Koop €1.000
+            </button>
+
+        </div>
+
+
+
+        <!-- €5000 -->
+
+        <div class="money-card">
+
+            <div class="money-icon">
+                💎
+            </div>
+
+            <h2>
+                €5.000
+            </h2>
+
+            <p>
+                5.000 credits
+            </p>
+
+            <button
+                class="buy-button"
+                onclick="koopSaldo(5000)"
+            >
+                Koop €5.000
+            </button>
+
+        </div>
+
+
+
+        <!-- €10000 -->
+
+        <div class="money-card">
+
+            <div class="money-icon">
+                🤑
+            </div>
+
+            <h2>
+                €10.000
+            </h2>
+
+            <p>
+                10.000 credits
+            </p>
+
+            <button
+                class="buy-button"
+                onclick="koopSaldo(10000)"
+            >
+                Koop €10.000
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- RESET -->
+
+    <div class="reset-section">
+
+        <button
+            class="reset-button"
+            onclick="resetBalance()"
+        >
+            Reset saldo naar €1.000
+        </button>
+
+    </div>
+
+
+
+    <div class="school-project">
+
+        <p>
+            ℹ️ Dit is virtueel speelgeld voor een schoolproject.
+            Er wordt geen echt geld gebruikt.
+        </p>
+
+    </div>
+
+
+</main>
+
+
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer>
+
+    <p>
+        &copy; 2026 BetYouWon't — Schoolproject, geen echt geld.
+    </p>
+
+</footer>
+
+
+
+<script src="balance.js"></script>
+
+
+<script>
+
+function koopSaldo(bedrag) {
+
+    const bevestigen = confirm(
+        "Wil je €" +
+        bedrag.toLocaleString("nl-NL") +
+        " aan virtueel speelgeld toevoegen?"
+    );
+
+
+    if (!bevestigen) {
+        return;
+    }
+
+
+    addBalance(bedrag);
+
+
+    alert(
+        "Gelukt! €" +
+        bedrag.toLocaleString("nl-NL") +
+        " aan virtueel speelgeld toegevoegd."
+    );
+
+
+    updateBalanceDisplay();
+}
+
+</script>
+
+
+</body>
+
+</html>

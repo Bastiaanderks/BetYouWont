@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Geld storten</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: #222;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .balance {
+            font-size: 28px;
+            margin: 20px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .deposit {
+            background: #20c997;
+            color: white;
+        }
+
+        .reset {
+            background: #dc3545;
+            color: white;
+        }
+
+        input {
+            width: 90%;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>💰 Geld storten</h1>
+
+    <div class="balance">
+        Saldo: <span id="balanceDisplay">€500</span>
+    </div>
+
+    <h3>Kies een bedrag</h3>
+
+    <button class="deposit" onclick="stort(100)">
+        + €100
+    </button>
+
+    <button class="deposit" onclick="stort(500)">
+        + €500
+    </button>
+
+    <button class="deposit" onclick="stort(1000)">
+        + €1.000
+    </button>
+
+    <h3>Of kies zelf een bedrag</h3>
+
+    <input
+        type="number"
+        id="customAmount"
+        placeholder="Bedrag in euro's"
+        min="1"
+    >
+
+    <button class="deposit" onclick="stortEigenBedrag()">
+        Geld toevoegen
+    </button>
+
+    <br><br>
+
+    <button class="reset" onclick="resetBalance()">
+        Reset naar €500
+    </button>
+
+</div>
+
+<script src="balance.js"></script>
+
+<script>
+
+function stort(bedrag) {
+    addBalance(bedrag);
+
+    alert("€" + bedrag + " toegevoegd!");
+}
+
+function stortEigenBedrag() {
+
+    const input = document.getElementById("customAmount");
+
+    const bedrag = parseInt(input.value);
+
+    if (isNaN(bedrag) || bedrag <= 0) {
+        alert("Vul een geldig bedrag in.");
+        return;
+    }
+
+    addBalance(bedrag);
+
+    input.value = "";
+
+    alert("€" + bedrag + " toegevoegd!");
+}
+
+</script>
+
+</body>
+</html>
