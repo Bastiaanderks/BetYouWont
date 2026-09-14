@@ -713,13 +713,17 @@ footer {
 }
 /* ===== BLACKJACK ===== */
 .blackjack-table {
-    background: var(--bg-secondary);
+     background-image: 
+        linear-gradient(rgba(15, 33, 46, 0.55), rgba(15, 33, 46, 0.55)),
+        url("games/Istilah-baccarat.jpg");
+    background-size: cover;
+    background-position: center;
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 30px 20px;
-    margin-top: 20px;
+    border-radius: 16px;
+    padding: 34px 20px;
+    margin-top: 10px;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
 }
-
 .hand-area {
     margin-bottom: 24px;
 }
