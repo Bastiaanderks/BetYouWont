@@ -2,9 +2,8 @@
 
 const SYMBOLEN = ["🍒", "🍋", "💎", "⭐", "🔔"];
 const AANTAL_VAKJES = 9;
-const WIN_KANS = 0.14; // 12% kans op een winnend lot
+const WIN_KANS = 0.12;
 
-// Uitbetaling per symbool bij 3-op-een-rij (in keer je inzet)
 const UITBETALING = {
     "🍒": 2,
     "🍋": 3,
@@ -24,13 +23,11 @@ const betInput = document.getElementById("betInput");
 const startBtn = document.getElementById("startBtn");
 const resultMessage = document.getElementById("resultMessage");
 
-// Genereer een willekeurig symbool
 function pakWillekeurigSymbool() {
     const index = Math.floor(Math.random() * SYMBOLEN.length);
     return SYMBOLEN[index];
 }
 
-// Husselt een array door elkaar (Fisher-Yates shuffle)
 function schudArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -40,7 +37,6 @@ function schudArray(array) {
     }
 }
 
-// Genereer een WINNEND lot
 function genereerWinnendeSymbolen() {
     const nieuweSymbolen = new Array(AANTAL_VAKJES).fill(null);
     const winnendSymbool = pakWillekeurigSymbool();
@@ -67,7 +63,6 @@ function genereerWinnendeSymbolen() {
     return nieuweSymbolen;
 }
 
-// Genereer een VERLIEZEND lot
 function genereerVerliezendeSymbolen() {
     const nieuweSymbolen = [];
     const tellingen = {};
@@ -85,13 +80,11 @@ function genereerVerliezendeSymbolen() {
     return nieuweSymbolen;
 }
 
-// Bepaal of dit lot wint, en genereer de bijbehorende symbolen
 function genereerNieuweSymbolen() {
     const isWinnend = Math.random() < WIN_KANS;
     return isWinnend ? genereerWinnendeSymbolen() : genereerVerliezendeSymbolen();
 }
 
-// Bouw de 9 vakjes in de HTML (in "actieve" staat, klaar om te krassen)
 function bouwGrid() {
     grid.innerHTML = "";
     grid.classList.remove("locked");
@@ -110,7 +103,6 @@ function bouwGrid() {
     }
 }
 
-// Zet de grid terug in vergrendelde staat (nog geen lot gekocht)
 function toonVergrendeldeGrid() {
     grid.innerHTML = "";
     grid.classList.add("locked");
@@ -125,7 +117,6 @@ function toonVergrendeldeGrid() {
     startBtn.textContent = "Koop kraslot";
 }
 
-// Start een nieuw kraslot
 function startNieuwKraslot() {
     huidigeInzet = parseInt(betInput.value);
 
@@ -151,7 +142,6 @@ function startNieuwKraslot() {
     bouwGrid();
 }
 
-// Eén vakje openkrassen
 function krasVakjeOpen(vakje) {
     if (!spelActief || vakje.classList.contains("gekrast")) {
         return;
@@ -165,11 +155,10 @@ function krasVakjeOpen(vakje) {
     aantalGekrast++;
 
     if (aantalGekrast === AANTAL_VAKJES) {
-        setTimeout(controleerWinst, 300); // klein moment om de laatste te bekijken
+        setTimeout(controleerWinst, 300);
     }
 }
 
-// Tel hoe vaak elk symbool voorkomt en check op een winnaar
 function controleerWinst() {
     const tellingen = {};
 
@@ -200,7 +189,6 @@ function controleerWinst() {
     spelActief = false;
 }
 
-// Event listeners
 startBtn.addEventListener("click", startNieuwKraslot);
 
 document.addEventListener("DOMContentLoaded", function () {

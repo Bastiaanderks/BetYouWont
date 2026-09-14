@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack - BetYouWon't</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">Bet<span>You</span>Won't</div>
+        <a href="../games.html">← Terug</a>
+        <div class="balance">Saldo: <span id="balanceDisplay">€1000</span></div>
+    </header>
+
+    <main class="game-page">
+        <h1>Blackjack</h1>
+        <p>Kom dichter bij de 21 dan de dealer, zonder erover te gaan.</p>
+
+        <div class="bet-controls">
+            <label for="betInput">Inzet: €</label>
+            <input type="number" id="betInput" value="10" min="1">
+            <button id="dealBtn" class="btn-primary">Deel kaarten</button>
+        </div>
+
+        <div class="payout-preview" id="payoutPreview">
+            Winst bij normale winst: <span id="normalPayout">€20</span> &nbsp;•&nbsp;
+            Winst bij Blackjack: <span id="blackjackPayout">€25</span>
+        </div>
+
+        <div class="blackjack-table">
+            <div class="hand-area">
+                <h3>Dealer <span id="dealerScore" class="hand-score"></span></h3>
+                <div class="card-row" id="dealerCards"></div>
+            </div>
+
+            <div class="table-divider"></div>
+
+            <div class="hand-area">
+                <h3>Jij <span id="playerScore" class="hand-score"></span></h3>
+                <div class="card-row" id="playerCards"></div>
+            </div>
+        </div>
+
+        <div class="action-controls" id="actionControls">
+            <button id="hitBtn" class="btn-secondary" disabled>Hit</button>
+            <button id="standBtn" class="btn-secondary" disabled>Stand</button>
+        </div>
+
+        <p id="resultMessage"></p>
+    </main>
+
+    <script src="../balance.js"></script>
+    <script src="blackjack.js"></script>
+</body>
+</html>
