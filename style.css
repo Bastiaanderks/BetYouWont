@@ -6,9 +6,20 @@
     font-family: 'Segoe UI', sans-serif;
 }
 
+:root {
+    --bg-primary: #0f212e;
+    --bg-secondary: #1a2c38;
+    --bg-tertiary: #213743;
+    --accent-green: #00e701;
+    --accent-green-dark: #00c001;
+    --text-primary: #ffffff;
+    --text-secondary: #b1bad3;
+    --border-color: #2f4553;
+}
+
 body {
-    background: #0d0b1a;
-    color: #f1f1f1;
+    background: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 a {
@@ -20,9 +31,9 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
-    background: #14112b;
-    border-bottom: 1px solid #2a2450;
+    padding: 16px 40px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
@@ -31,140 +42,199 @@ a {
 }
 
 .logo span {
-    color: #c9a4ff;
+    color: var(--accent-green);
 }
 
 .navbar nav a {
-    color: #ccc;
+    color: var(--text-secondary);
     text-decoration: none;
     margin: 0 15px;
+    font-weight: 500;
     transition: color 0.2s;
 }
 
 .navbar nav a:hover {
-    color: #c9a4ff;
+    color: var(--text-primary);
 }
 
 .balance {
-    background: #1f1a3d;
+    background: var(--bg-tertiary);
     padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid #c9a4ff44;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
 }
 
 .balance span {
-    color: #ffd166;
+    color: var(--accent-green);
     font-weight: bold;
 }
 
 /* ===== HERO (homepage) ===== */
 .hero {
-    text-align: center;
-    padding: 100px 20px;
-    background: radial-gradient(circle at top, #24184d 0%, #0d0b1a 70%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 80px 60px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    flex-wrap: wrap;
+}
+
+.hero-text {
+    flex: 1;
+    min-width: 280px;
 }
 
 .hero h1 {
-    font-size: 2.8rem;
-    margin-bottom: 20px;
+    font-size: 2.6rem;
+    margin-bottom: 16px;
+    line-height: 1.2;
 }
 
 .hero h1 span {
-    color: #ffd166;
+    color: var(--accent-green);
 }
 
 .hero p {
-    color: #bbb;
-    margin-bottom: 30px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    font-size: 1.05rem;
+}
+
+.hero-image {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-image .hero-icon {
+    font-size: 8rem;
+    filter: drop-shadow(0 0 40px var(--accent-green)55);
 }
 
 /* ===== BUTTONS ===== */
 .btn-primary {
     display: inline-block;
-    background: linear-gradient(90deg, #7b3fe4, #c9a4ff);
-    color: #14112b;
+    background: var(--accent-green);
+    color: #05130a;
     padding: 14px 32px;
     border: none;
-    border-radius: 30px;
+    border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: background 0.2s, transform 0.2s;
 }
 
 .btn-primary:hover {
-    transform: scale(1.05);
+    background: var(--accent-green-dark);
+    transform: translateY(-2px);
 }
 
 .btn-secondary {
     display: inline-block;
-    background: transparent;
-    border: 1px solid #c9a4ff;
-    color: #c9a4ff;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     padding: 8px 20px;
-    border-radius: 20px;
+    border-radius: 8px;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+    transition: background 0.2s, border-color 0.2s;
 }
 
 .btn-secondary:hover {
-    background: #c9a4ff;
-    color: #14112b;
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #05130a;
 }
 
-/* ===== GAMES OVERZICHT (homepage) ===== */
+/* ===== SECTIE HEADER (herbruikbaar) ===== */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.section-header h2 {
+    font-size: 1.6rem;
+}
+
+.section-header a {
+    color: var(--accent-green);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ===== GAMES OVERZICHT ===== */
 .games {
-    padding: 60px 40px;
-}
-
-.games h2 {
-    text-align: center;
-    margin-bottom: 40px;
-    font-size: 2rem;
+    padding: 50px 60px;
 }
 
 .game-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 25px;
+    gap: 20px;
 }
 
 .game-card {
-    background: #14112b;
-    border: 1px solid #2a2450;
-    border-radius: 16px;
-    padding: 25px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
     text-align: center;
     transition: transform 0.2s, border-color 0.2s;
 }
 
 .game-card:hover {
-    transform: translateY(-5px);
-    border-color: #c9a4ff;
+    transform: translateY(-4px);
+    border-color: var(--accent-green);
+}
+
+.game-thumb-wrapper {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.game-thumb-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .game-thumb {
     font-size: 3rem;
-    margin-bottom: 15px;
+}
+
+.game-card-info {
+    padding: 18px;
 }
 
 .game-card h3 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .game-card p {
-    color: #aaa;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
 }
 
 /* ===== INDIVIDUELE GAME-PAGINA'S ===== */
 .game-page {
     max-width: 600px;
     margin: 0 auto;
-    padding: 60px 20px;
+    padding: 50px 20px;
     text-align: center;
 }
 
@@ -173,7 +243,7 @@ a {
 }
 
 .game-page > p {
-    color: #aaa;
+    color: var(--text-secondary);
     margin-bottom: 20px;
 }
 
@@ -186,16 +256,16 @@ a {
 }
 
 .bet-controls label {
-    color: #bbb;
+    color: var(--text-secondary);
 }
 
 .bet-controls input {
     width: 80px;
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid #2a2450;
-    background: #14112b;
-    color: white;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
     text-align: center;
 }
 
@@ -213,9 +283,9 @@ a {
 }
 
 .kras-vakje {
-    background: linear-gradient(145deg, #24204a, #1a1636);
-    border: 2px solid #2a2450;
-    border-radius: 14px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
     height: 95px;
     display: flex;
     align-items: center;
@@ -223,30 +293,25 @@ a {
     font-size: 2.1rem;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, transform 0.15s;
-    box-shadow: inset 0 0 0 rgba(0,0,0,0);
 }
 
 .kras-vakje:hover {
-    background: linear-gradient(145deg, #2e2a5c, #1f1a3d);
-    border-color: #c9a4ff88;
+    border-color: var(--accent-green);
     transform: translateY(-2px);
 }
 
 .kras-vakje.gekrast {
-    background: #14112b;
-    border-color: #2a2450;
+    background: var(--bg-secondary);
     cursor: default;
     transform: none;
 }
 
-/* leeg = vergrendelde staat, geen inhoud, geen hover-effect */
 .kras-vakje.leeg {
-    background: #16132a;
-    border: 2px dashed #2a2450;
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
     cursor: default;
 }
 
-/* pop-in animatie zodra een symbool onthuld wordt */
 .kras-vakje.onthuld {
     animation: onthullen 0.3s ease;
 }
@@ -257,7 +322,6 @@ a {
     100% { transform: scale(1); }
 }
 
-/* Overlay bovenop de grid als er nog niks gekocht is */
 .grid-overlay {
     position: absolute;
     inset: 0;
@@ -266,9 +330,9 @@ a {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: rgba(13, 11, 26, 0.75);
+    background: rgba(15, 33, 46, 0.85);
     backdrop-filter: blur(2px);
-    border-radius: 14px;
+    border-radius: 12px;
     text-align: center;
     padding: 20px;
 }
@@ -282,11 +346,10 @@ a {
 }
 
 .grid-overlay p {
-    color: #ccc;
+    color: var(--text-secondary);
     font-size: 0.95rem;
 }
 
-/* Resultaatbericht */
 #resultMessage {
     margin-top: 20px;
     font-weight: bold;
@@ -295,7 +358,7 @@ a {
 }
 
 #resultMessage.winst {
-    color: #ffd166;
+    color: var(--accent-green);
     font-size: 1.1rem;
 }
 
@@ -307,9 +370,9 @@ a {
 }
 
 #crashCanvas {
-    background: #14112b;
-    border: 1px solid #2a2450;
-    border-radius: 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     width: 100%;
     height: auto;
 }
@@ -321,14 +384,14 @@ a {
     transform: translateX(-50%);
     font-size: 2.2rem;
     font-weight: bold;
-    color: #c9a4ff;
-    text-shadow: 0 0 12px #c9a4ff88;
+    color: #3aa0ff;
+    text-shadow: 0 0 14px rgba(58, 160, 255, 0.6);
     transition: color 0.2s;
 }
 
 .multiplier-display.gecrasht {
-    color: #ff5c5c;
-    text-shadow: 0 0 12px #ff5c5c88;
+    color: #ff4d4d;
+    text-shadow: 0 0 12px rgba(255, 77, 77, 0.5);
 }
 
 #cashoutBtn:disabled,
@@ -338,12 +401,313 @@ a {
 }
 
 #cashoutBtn:not(:disabled) {
-    background: #ffd166;
-    border-color: #ffd166;
-    color: #14112b;
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #05130a;
     font-weight: bold;
 }
 
 #cashoutBtn:not(:disabled):hover {
-    background: #ffdb85;
+    background: var(--accent-green-dark);
+}
+
+
+/* ===== PLINKO ===== */
+.plinko-wrapper {
+    max-width: 500px;
+    margin: 30px auto 0;
+}
+
+#plinkoCanvas {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 100%;
+    height: auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== FOOTER ===== */
+footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    background: var(--bg-secondary);
+}
+
+/* ==========================================
+   SALDO PAGINA
+========================================== */
+
+.balance-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 30px;
+}
+
+
+/* HEADER */
+
+.balance-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.balance-header h1 {
+    font-size: 2.4rem;
+    margin-bottom: 10px;
+}
+
+.balance-header p {
+    color: var(--text-secondary);
+}
+
+
+/* HUIDIG SALDO */
+
+.current-balance {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 25px;
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto 45px;
+}
+
+.current-balance p {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.current-balance strong {
+    color: var(--accent-green);
+    font-size: 2.5rem;
+}
+
+
+/* BUNDELS */
+
+.packages {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+
+    gap: 20px;
+}
+
+
+/* MONEY CARD */
+
+.money-card {
+    position: relative;
+
+    background: var(--bg-secondary);
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 14px;
+
+    padding: 30px 20px;
+
+    text-align: center;
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.money-card:hover {
+    transform: translateY(-5px);
+
+    border-color: var(--accent-green);
+
+    box-shadow:
+        0 10px 30px rgba(0, 231, 1, 0.12);
+}
+
+
+.money-icon {
+    font-size: 3.5rem;
+
+    margin-bottom: 15px;
+}
+
+
+.money-card h2 {
+    font-size: 2rem;
+
+    margin-bottom: 5px;
+}
+
+
+.money-card p {
+    color: var(--text-secondary);
+
+    margin-bottom: 22px;
+}
+
+
+/* POPULAIR */
+
+.money-card.featured {
+    border-color: var(--accent-green);
+}
+
+
+.popular {
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    background: var(--accent-green);
+
+    color: #05130a;
+
+    font-size: 0.7rem;
+
+    font-weight: bold;
+
+    padding: 5px 9px;
+
+    border-radius: 5px;
+}
+
+
+/* KOOP BUTTON */
+
+.buy-button {
+    width: 100%;
+
+    background: var(--accent-green);
+
+    color: #05130a;
+
+    border: none;
+
+    padding: 13px;
+
+    border-radius: 8px;
+
+    font-size: 1rem;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.buy-button:hover {
+    background: var(--accent-green-dark);
+
+    transform: translateY(-2px);
+}
+
+
+/* RESET */
+
+.reset-section {
+    text-align: center;
+
+    margin-top: 40px;
+}
+
+
+.reset-button {
+    background: transparent;
+
+    color: var(--text-secondary);
+
+    border: 1px solid var(--border-color);
+
+    padding: 10px 18px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s,
+        border-color 0.2s;
+}
+
+
+.reset-button:hover {
+    color: white;
+
+    border-color: #ffffff;
+}
+
+
+/* SCHOOLPROJECT MELDING */
+
+.school-project {
+    text-align: center;
+
+    margin-top: 35px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.85rem;
+}
+
+
+/* NAVBAR ACTIVE LINK */
+
+.navbar nav a.active {
+    color: var(--accent-green);
+}
+
+
+/* ==========================================
+   MOBIEL
+========================================== */
+
+@media (max-width: 700px) {
+
+    .navbar {
+        padding: 15px 20px;
+
+        flex-wrap: wrap;
+
+        gap: 15px;
+    }
+
+
+    .navbar nav {
+        width: 100%;
+
+        order: 3;
+
+        text-align: center;
+    }
+
+
+    .navbar nav a {
+        display: inline-block;
+
+        margin: 5px 8px;
+
+        font-size: 0.9rem;
+    }
+
+
+    .balance-page {
+        padding: 40px 20px;
+    }
+
+
+    .balance-header h1 {
+        font-size: 2rem;
+    }
+
 }

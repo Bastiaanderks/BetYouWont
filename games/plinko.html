@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko - BetYouWon't</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">Bet<span>You</span>Won't</div>
+        <a href="../index.html">← Terug</a>
+        <div class="balance">Saldo: <span id="balanceDisplay">€1000</span></div>
+    </header>
+
+    <main class="game-page">
+        <h1>Plinko</h1>
+        <p>Laat het balletje vallen. Waar het landt, bepaalt je uitbetaling.</p>
+
+        <div class="plinko-wrapper">
+            <canvas id="plinkoCanvas" width="500" height="450"></canvas>
+        </div>
+
+        <div class="bet-controls">
+            <label for="betInput">Inzet: €</label>
+            <input type="number" id="betInput" value="10" min="1">
+            <button id="dropBtn" class="btn-primary">Laat vallen</button>
+        </div>
+
+        <p id="resultMessage"></p>
+    </main>
+
+    <script src="../balance.js"></script>
+    <script src="plinko.js"></script>
+</body>
+</html>
