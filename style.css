@@ -711,3 +711,82 @@ footer {
     }
 
 }
+/* ===== BLACKJACK ===== */
+.blackjack-table {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 30px 20px;
+    margin-top: 20px;
+}
+
+.hand-area {
+    margin-bottom: 24px;
+}
+
+.hand-area:last-child {
+    margin-bottom: 0;
+}
+
+.hand-area h3 {
+    margin-bottom: 12px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.hand-score {
+    color: var(--accent-green);
+    font-weight: bold;
+}
+
+.card-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-height: 84px;
+}
+
+.speelkaart {
+    width: 56px;
+    height: 78px;
+    background: #ffffff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #14112b;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    animation: kaartUitdelen 0.3s ease;
+}
+
+.speelkaart.rood {
+    color: #e0293e;
+}
+
+.speelkaart.verborgen-kaart {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--accent-green);
+    color: var(--accent-green);
+    font-size: 1.8rem;
+}
+
+@keyframes kaartUitdelen {
+    from { transform: translateY(-20px) scale(0.8); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.action-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.action-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
