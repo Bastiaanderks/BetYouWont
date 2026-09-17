@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette - BetYouWon't</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="navbar">
+
+    <div class="logo">
+        Bet<span>You</span>Won't
+    </div>
+
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../games.html">Games</a>
+        <a href="../saldo.html">Saldo kopen</a>
+    </nav>
+
+    <div class="balance">
+        Saldo:
+        <span id="balanceDisplay">€1000</span>
+    </div>
+
+</header>
+
+<section class="game-page roulette-page">
+
+    <h1>Roulette</h1>
+    <p>Europese roulette: 37 vakjes, één nul. Kies een fiche en klik op het tafelkleed.</p>
+
+    <!-- ===== WIEL ===== -->
+    <div class="wiel-wrapper">
+        <canvas id="wielCanvas" width="340" height="340"></canvas>
+        <div class="wiel-pijl"></div>
+        <div id="resultaatNummer" class="resultaat-nummer">–</div>
+    </div>
+
+    <p id="resultMessage"></p>
+
+    <!-- ===== LAATSTE NUMMERS ===== -->
+    <div class="historie" id="historie"></div>
+
+    <!-- ===== FICHES ===== -->
+    <div class="fiches" id="fiches">
+        <button class="fiche" data-waarde="1">€1</button>
+        <button class="fiche actief" data-waarde="5">€5</button>
+        <button class="fiche" data-waarde="25">€25</button>
+        <button class="fiche" data-waarde="100">€100</button>
+    </div>
+
+    <!-- ===== TAFEL ===== -->
+    <div class="tafel">
+
+        <!-- nul + nummers worden door JS gevuld -->
+        <div class="nummer-grid" id="nummerGrid"></div>
+
+        <!-- dozijnen -->
+        <div class="buiten-rij">
+            <div class="inzet-vak" data-bet="dozijn-1">1e 12</div>
+            <div class="inzet-vak" data-bet="dozijn-2">2e 12</div>
+            <div class="inzet-vak" data-bet="dozijn-3">3e 12</div>
+        </div>
+
+        <!-- kansspelen 1:1 -->
+        <div class="buiten-rij">
+            <div class="inzet-vak" data-bet="laag">1–18</div>
+            <div class="inzet-vak" data-bet="even">Even</div>
+            <div class="inzet-vak kleur-rood" data-bet="rood">Rood</div>
+            <div class="inzet-vak kleur-zwart" data-bet="zwart">Zwart</div>
+            <div class="inzet-vak" data-bet="oneven">Oneven</div>
+            <div class="inzet-vak" data-bet="hoog">19–36</div>
+        </div>
+
+    </div>
+
+    <!-- ===== KNOPPEN ===== -->
+    <div class="inzet-info">
+        Totale inzet: <strong id="totaleInzet">€0</strong>
+    </div>
+
+    <div class="action-controls">
+        <button id="spinBtn" class="btn-primary">Draai het wiel</button>
+        <button id="wisBtn" class="btn-secondary">Wis inzet</button>
+    </div>
+
+    <p class="school-project">Schoolproject — er wordt met nepgeld gespeeld.</p>
+
+</section>
+
+<footer>
+    <p>&copy; 2026 BetYouWon't — Schoolproject, geen echt geld.</p>
+</footer>
+
+<script src="../balance.js"></script>
+<script src="roulette.js"></script>
+</body>
+</html>
