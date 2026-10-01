@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drakenvuur - BetYouWon't</title>
+<script>
+/* Kijkt alleen naar de map waar dit bestand in staat: staat die 'games'? Dan ligt de rest een map hoger */
+const P = (location.pathname.split("/").slice(-2, -1)[0] || "").toLowerCase() === "games" ? "../" : "";
+document.write('<link rel="stylesheet" href="' + P + 'style.css">');
+</script>
+<style>
+.stage{padding:24px 16px 40px;color:#fff;text-align:center;background:radial-gradient(circle at 50% 0,#2b1a4d,#0e0b1c 70%);transition:background 1s}
+.stage.fire{background:radial-gradient(circle at 50% 0,#8a1c00,#2a0500 75%);animation:glow 1.6s infinite alternate}
+@keyframes glow{to{filter:brightness(1.25)}}
+.dv{max-width:620px;margin:0 auto}
+.dv h1{margin:0;font-size:1.9rem;color:#ffcf4d;text-shadow:0 0 12px #ff7a00}
+.dv .sub{opacity:.75;margin:2px 0 12px;font-size:.9rem}
+.back{display:inline-block;margin-bottom:8px;color:#ffcf4d;text-decoration:none;font-size:.9rem}
+.hud{display:flex;justify-content:space-around;background:#00000055;border-radius:10px;padding:8px;margin-bottom:10px;font-size:.95rem;min-height:22px}
+.hud b{color:#ffcf4d}
+.frame{position:relative;background:linear-gradient(#3b2a12,#1c1408);padding:10px;border-radius:16px;border:3px solid #d4a017;box-shadow:0 0 25px #d4a01755}
+.reels{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.reels.shake{animation:shake .5s}
+@keyframes shake{25%{transform:translate(-6px,3px)}50%{transform:translate(6px,-3px)}75%{transform:translate(-4px,2px)}}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(22px,7vw,42px);font-weight:900;background:linear-gradient(#f3e9d2,#cbb98d);color:#222;border-radius:10px;transition:transform .2s}
+.cell.emo{background:linear-gradient(#332255,#1a1030)}
+.cell.win{animation:pulse .5s infinite alternate;box-shadow:0 0 14px 3px #ffd54a;z-index:1}
+.cell.flame{background:linear-gradient(#ff8a00,#a10000);animation:pulse .3s 4 alternate}
+@keyframes pulse{to{transform:scale(1.12)}}
+.spinning .cell{filter:blur(1.5px)}
+.cell.egg{flex-direction:column;line-height:1;font-size:clamp(20px,6vw,34px);background:linear-gradient(#ffd54a,#c98a00);color:#3a1a00}
+.cell.egg small{font-size:.42em;font-weight:900;margin-top:2px}
+.cell.egg.fire{background:linear-gradient(#ff8a00,#a10000);color:#fff}
+.cell.empty{background:#00000066;color:#ffffff33}
+.cell.hatch{animation:pulse .3s 3 alternate;box-shadow:0 0 16px 4px #ffd54a}
+.ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:#000c;border-radius:14px;z-index:5;font-size:clamp(22px,7vw,38px);font-weight:900;color:#ffcf4d;text-shadow:0 0 16px #ff5a00;animation:pop .4s}
+.ov small{font-size:1rem;color:#fff;margin-top:6px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.info{display:flex;justify-content:space-around;margin:12px 0 6px;font-size:1rem}
+.info b{color:#ffcf4d}
+.msg{min-height:26px;font-weight:bold;color:#7dffb0;margin-bottom:8px}
+.controls{display:flex;align-items:center;justify-content:center;gap:10px}
+.controls button{border:0;border-radius:10px;padding:10px 16px;font-weight:bold;cursor:pointer;background:#3a2f5c;color:#fff;font-size:1rem}
+.controls button:disabled{opacity:.5;cursor:not-allowed}
+#spinBtn{background:linear-gradient(#ffcf4d,#e08a00);color:#111;padding:12px 38px;font-size:1.2rem}
+details{margin-top:16px;text-align:left;background:#00000055;border-radius:10px;padding:8px 12px;font-size:.85rem}
+summary{cursor:pointer;font-weight:bold}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+td,th{padding:3px 6px;text-align:center;border-bottom:1px solid #ffffff22}
+.rules{margin-top:12px;font-size:.8rem;opacity:.7;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">Bet<span>You</span>Won't</div>
+    <nav>
+        <a data-h="index.html">Home</a>
+        <a data-h="games.html">Games</a>
+        <a data-h="saldo.html">Saldo kopen</a>
+        <a href="#">Promoties</a>
+        <a href="#">Over ons</a>
+    </nav>
+    <div class="balance">Saldo: <span id="balanceDisplay">€1000</span></div>
+</header>
+
+<section class="stage" id="stage">
+<main class="dv">
+    <a class="back" data-h="games.html">← Terug naar games</a>
+    <h1>🐉 Drakenvuur</h1>
+    <p class="sub">20 winlijnen · Wild 🐉 · 3 dracheneieren 🥚 = Drakennest bonus</p>
+
+    <div class="hud" id="hud"></div>
+    <div class="frame">
+        <div class="reels" id="reels"></div>
+        <div class="ov" id="ov"></div>
+    </div>
+
+    <div class="info">
+        <div>Saldo: <b id="balanceDisplay">€1000</b></div>
+        <div>Inzet: <b id="betShow"></b></div>
+        <div>Winst: <b id="winShow">€0</b></div>
+    </div>
+    <div class="msg" id="msg"></div>
+
+    <div class="controls">
+        <button id="betMin">−</button>
+        <button id="spinBtn">SPIN</button>
+        <button id="betPlus">+</button>
+        <button id="sndBtn" title="Geluid">🔊</button>
+    </div>
+
+    <details><summary>Uitbetalingstabel (x lijninzet)</summary>
+        <table id="pay"></table>
+    </details>
+    <p class="rules">
+        Winst op een lijn: 3 of meer gelijke symbolen van links naar rechts. Wild vervangt alles behalve het ei.
+        <b>Bonus – Het Drakennest:</b> 3 eieren 🥚 blijven met een geldprijs op het veld liggen. Je krijgt 3 respins:
+        elke keer dat er een nieuw ei landt, begint de teller weer op 3. Een vuurei 🐉 verdubbelt alle eieren in zijn rij.
+        Vul alle 15 plekken voor de MEGA DRAKEN JACKPOT (20x je inzet)! Schoolproject, nepgeld.
+    </p>
+</main>
+</section>
+
+<script>document.write('<script src="' + P + 'balance.js"><\/script>');</script>
+<script>
+/* Reserve: als balance.js niet gevonden wordt, werkt het saldo toch (zelfde opslag "balance") */
+if (typeof subtractBalance === "undefined") {
+    window.getBalance = function () { var v = parseInt(localStorage.getItem("balance")); if (isNaN(v)) { v = 1000; localStorage.setItem("balance", v); } return v; };
+    window.updateBalanceDisplay = function () { document.querySelectorAll("#balanceDisplay").forEach(function (e) { e.textContent = "€" + getBalance(); }); };
+    window.setBalance = function (n) { n = Math.round(n); if (isNaN(n) || n < 0) n = 0; localStorage.setItem("balance", n); updateBalanceDisplay(); };
+    window.addBalance = function (b) { if (b > 0) setBalance(getBalance() + b); };
+    window.subtractBalance = function (b) { if (b > getBalance()) { alert("Je hebt niet genoeg saldo!"); return false; } setBalance(getBalance() - b); return true; };
+}
+</script>
+<script>
+document.querySelectorAll("[data-h]").forEach(a => a.href = P + a.dataset.h);
+
+const BETS = [20, 40, 100, 200];           // per lijn: inzet / 20 (altijd hele bedragen)
+const SYM = [
+    { id: "10", s: "10", w: 22, p: [1, 3, 10],  c: "#2e7d32" },
+    { id: "J",  s: "J",  w: 22, p: [1, 3, 10],  c: "#1565c0" },
+    { id: "Q",  s: "Q",  w: 18, p: [2, 5, 15],  c: "#8e24aa" },
+    { id: "K",  s: "K",  w: 16, p: [2, 6, 20],  c: "#c62828" },
+    { id: "sw", s: "🗡️", w: 12, p: [3, 10, 30], emo: 1 },
+    { id: "sh", s: "🛡️", w: 10, p: [4, 12, 40], emo: 1 },
+    { id: "cr", s: "👑", w: 7,  p: [6, 20, 75], emo: 1 },
+    { id: "di", s: "💎", w: 5,  p: [10, 40, 150], emo: 1 },
+    { id: "wd", s: "🐉", w: 4,  p: [15, 60, 250], emo: 1, wild: 1 },
+    { id: "eg", s: "🥚", w: 8,  emo: 1, scatter: 1 }
+];
+const WILD = SYM.find(x => x.wild), LINES = [
+    [1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
+    [0,0,1,2,2],[2,2,1,0,0],[1,0,0,0,1],[1,2,2,2,1],[0,1,0,1,0],
+    [2,1,2,1,2],[1,0,1,0,1],[1,2,1,2,1],[0,1,1,1,0],[2,1,1,1,2],
+    [1,1,0,1,1],[1,1,2,1,1],[0,2,0,2,0],[2,0,2,0,2],[0,0,2,0,0]
+];
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let betIndex = 0, busy = false, snd = true, ac, grid = [];
+const bet = () => BETS[betIndex], lineBet = () => bet() / 20;
+
+function tone(f, d = .12, t = "sine") {
+    if (!snd) return;
+    try {
+        ac = ac || new AudioContext();
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = t; o.frequency.value = f; g.gain.value = .05;
+        o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + d);
+    } catch (e) {}
+}
+
+function pick(col) {
+    const pool = SYM.filter(x => !(x.wild && (col === 0 || col === 4)));  // wilds alleen op rol 2-4
+    let r = Math.random() * pool.reduce((a, x) => a + x.w, 0);
+    for (const x of pool) { r -= x.w; if (r <= 0) return x; }
+    return pool[0];
+}
+
+function render(win, flame) {
+    const el = $("reels");
+    el.innerHTML = "";
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) {
+        const d = document.createElement("div"), sy = grid[r][c], k = r * 5 + c;
+        d.className = "cell" + (sy.emo ? " emo" : "") + (win && win.has(k) ? " win" : "") + (flame && flame.has(k) ? " flame" : "");
+        if (!sy.emo) d.style.color = sy.c;
+        d.textContent = sy.s;
+        el.appendChild(d);
+    }
+}
+
+async function animate(final, slow) {
+    $("reels").classList.add("spinning");
+    await Promise.all([0, 1, 2, 3, 4].map(c => new Promise(res => {
+        const iv = setInterval(() => { for (let r = 0; r < 3; r++) grid[r][c] = pick(c); render(); }, 70);
+        setTimeout(() => {
+            clearInterval(iv);
+            for (let r = 0; r < 3; r++) grid[r][c] = final[r][c];
+            render(); tone(180 + c * 40, .08, "square"); res();
+        }, (slow ? 800 : 500) + c * 250);
+    })));
+    $("reels").classList.remove("spinning");
+}
+
+function evaluate() {
+    let win = 0, cells = new Set();
+    LINES.forEach(line => {
+        const syms = line.map((row, c) => grid[row][c]);
+        const base = syms.find(x => !x.wild) || WILD;
+        if (base.scatter) return;
+        let n = 0;
+        while (n < 5 && (syms[n] === base || syms[n].wild)) n++;
+        if (n >= 3) {
+            win += lineBet() * base.p[n - 3];
+            for (let i = 0; i < n; i++) cells.add(line[i] * 5 + i);
+        }
+    });
+    return { win, cells };
+}
+const scatters = () => grid.flat().filter(x => x.scatter).length;
+
+function overlay(html, ms) {
+    const o = $("ov"); o.innerHTML = html; o.style.display = "flex";
+    return sleep(ms).then(() => o.style.display = "none");
+}
+function shake() { const r = $("reels"); r.classList.remove("shake"); void r.offsetWidth; r.classList.add("shake"); }
+
+async function countUp(to) {
+    const t0 = performance.now();
+    while (true) {
+        const k = Math.min(1, (performance.now() - t0) / 600);
+        $("winShow").textContent = "€" + Math.round(to * k);
+        if (k >= 1) break;
+        await sleep(30);
+    }
+}
+
+async function resolveWin(mult) {
+    let { win, cells } = evaluate();
+    win = Math.round(win * mult);
+    render(cells);
+    if (win > 0) {
+        addBalance(win);
+        [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .15), i * 110));
+        await countUp(win);
+        if (win >= bet() * 10) {
+            shake();
+            await overlay("💰 BIG WIN! 💰<small>€" + win + "</small>", 1800);
+        }
+    }
+    return win;
+}
+
+async function spin() {
+    if (busy) return;
+    if (getBalance() < bet()) { $("msg").textContent = "Te weinig saldo voor deze inzet. Verlaag je inzet of koop saldo."; return; }
+    if (!subtractBalance(bet())) return;
+    busy = true; lock(true);
+    $("msg").textContent = ""; $("winShow").textContent = "€0";
+    const final = Array.from({ length: 3 }, () => Array.from({ length: 5 }, (_, c) => pick(c)));
+    await animate(final);
+    const win = await resolveWin(1);
+    $("msg").textContent = win > 0 ? "🎉 Je wint €" + win : "Geen winst, probeer opnieuw!";
+    if (scatters() >= 3) { await sleep(700); await bonus(); }
+    busy = false; lock(false);
+}
+
+// ---------- BONUS: HET DRAKENNEST (hold & win) ----------
+const FACTORS = [[0.5, 30], [1, 28], [2, 18], [3, 10], [5, 7], [10, 4], [25, 2]];
+function eggValue() {
+    let r = Math.random() * FACTORS.reduce((a, x) => a + x[1], 0);
+    for (const [f, w] of FACTORS) { r -= w; if (r <= 0) return Math.round(bet() * f); }
+    return bet();
+}
+
+function renderNest(nest, hl) {
+    const el = $("reels");
+    el.innerHTML = "";
+    nest.forEach((e, k) => {
+        const d = document.createElement("div");
+        d.className = "cell " + (e ? (e.fire ? "egg fire" : "egg") : "empty") + (hl && hl.has(k) ? " hatch" : "");
+        d.innerHTML = e ? (e.fire ? "🐉<small>VUUR</small>" : "🥚<small>€" + e.v + "</small>") : "·";
+        el.appendChild(d);
+    });
+}
+
+function nestHud(respins, total, count) {
+    $("hud").innerHTML = respins === null ? "" :
+        "<div>Respins: <b>" + respins + "</b></div><div>Eieren: <b>" + count + "/15</b></div><div>Nest: <b>€" + total + "</b></div>";
+}
+
+async function bonus() {
+    $("stage").classList.add("fire");
+    shake(); [110, 90, 70].forEach((f, i) => setTimeout(() => tone(f, .4, "sawtooth"), i * 250));
+    await overlay("🥚🥚🥚<br>🔥 HET DRAKENNEST 🔥<small>Eieren blijven liggen · 3 respins · vul het nest voor de MEGA JACKPOT</small>", 3400);
+
+    const nest = Array(15).fill(null);
+    grid.forEach((row, r) => row.forEach((sy, c) => { if (sy.scatter) nest[r * 5 + c] = { v: eggValue() }; }));
+    const total = () => nest.reduce((a, e) => a + (e ? e.v : 0), 0);
+    const count = () => nest.filter(Boolean).length;
+    let respins = 3;
+    renderNest(nest);
+
+    while (respins > 0 && count() < 15) {
+        nestHud(respins, total(), count());
+        $("msg").textContent = "🥚 Respin… nieuwe eieren?";
+        await sleep(1000);
+
+        const landed = new Set();
+        nest.forEach((e, k) => {
+            if (!e && Math.random() < 0.07) {
+                nest[k] = Math.random() < 0.1 ? { v: 0, fire: true } : { v: eggValue() };
+                landed.add(k);
+            }
+        });
+        renderNest(nest, landed);
+
+        if (landed.size > 0) {
+            tone(600, .1); setTimeout(() => tone(800, .12), 110);
+            await sleep(900);
+            // Vuurei: verdubbelt alle eieren in zijn rij
+            const flames = new Set();
+            landed.forEach(k => {
+                if (!nest[k].fire) return;
+                const row = Math.floor(k / 5);
+                for (let c = 0; c < 5; c++) {
+                    const e = nest[row * 5 + c];
+                    if (e && !e.fire) { e.v *= 2; flames.add(row * 5 + c); }
+                }
+            });
+            if (flames.size > 0) {
+                $("msg").textContent = "🐉 Drakenadem! De eieren in die rij verdubbelen!";
+                tone(90, .5, "sawtooth"); shake();
+                renderNest(nest, flames);
+                await sleep(1300);
+            }
+            respins = 3;
+        } else {
+            respins--;
+            await sleep(500);
+        }
+        nestHud(respins, total(), count());
+    }
+
+    let jackpot = 0;
+    if (count() === 15) {
+        jackpot = bet() * 20;
+        await overlay("👑 MEGA DRAKEN JACKPOT! 👑<small>+€" + jackpot + "</small>", 2800);
+    }
+    const win = total() + jackpot;
+    nestHud(null);
+    if (win > 0) addBalance(win);
+    [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, .18), i * 120));
+    await countUp(win);
+    await overlay("🔥 NEST KLAAR 🔥<small>Totaal gewonnen: €" + win + "</small>", 3000);
+    $("stage").classList.remove("fire");
+    $("msg").textContent = "🎉 Drakennest bonus: €" + win;
+    render();
+}
+
+function lock(off) { ["spinBtn", "betMin", "betPlus"].forEach(id => $(id).disabled = off); }
+function showBet() { $("betShow").textContent = "€" + bet(); }
+
+$("betMin").onclick = () => { betIndex = Math.max(0, betIndex - 1); showBet(); };
+$("betPlus").onclick = () => { betIndex = Math.min(BETS.length - 1, betIndex + 1); showBet(); };
+async function safeSpin() {
+    try { await spin(); }
+    catch (e) { console.error(e); $("msg").textContent = "Er ging iets mis: " + e.message; busy = false; lock(false); }
+}
+$("spinBtn").onclick = safeSpin;
+$("sndBtn").onclick = () => { snd = !snd; $("sndBtn").textContent = snd ? "🔊" : "🔇"; };
+document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); safeSpin(); } });
+
+$("pay").innerHTML = "<tr><th></th><th>3x</th><th>4x</th><th>5x</th></tr>" +
+    SYM.filter(x => x.p).reverse().map(x => "<tr><td>" + x.s + "</td><td>" + x.p.join("</td><td>") + "</td></tr>").join("") +
+    "<tr><td>🥚</td><td colspan=3>3+ overal = Drakennest bonus</td></tr>";
+
+grid = Array.from({ length: 3 }, () => Array.from({ length: 5 }, (_, c) => pick(c)));
+render(); showBet(); updateBalanceDisplay();
+</script>
+</body>
+</html>

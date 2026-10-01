@@ -15,15 +15,26 @@ function getBalance() {
         return STARTBEDRAG;
     }
 
-    return parseInt(opgeslagenSaldo);
+    const saldo = parseInt(opgeslagenSaldo);
+
+    // Als er iets geks is opgeslagen (bijv. "NaN"), begin opnieuw
+    if (isNaN(saldo)) {
+        localStorage.setItem("balance", STARTBEDRAG);
+        return STARTBEDRAG;
+    }
+
+    return saldo;
 }
 
 
 // Saldo opslaan
 function setBalance(nieuwSaldo) {
 
+    // Altijd een heel bedrag
+    nieuwSaldo = Math.round(nieuwSaldo);
+
     // Voorkom negatieve bedragen
-    if (nieuwSaldo < 0) {
+    if (nieuwSaldo < 0 || isNaN(nieuwSaldo)) {
         nieuwSaldo = 0;
     }
 
@@ -88,4 +99,16 @@ function resetBalance() {
 // Wanneer pagina geladen wordt
 document.addEventListener("DOMContentLoaded", function() {
     updateBalanceDisplay();
+});
+
+// Terug-knop van de browser: oude pagina uit het geheugen? Dan saldo verversen
+window.addEventListener("pageshow", function() {
+    updateBalanceDisplay();
+});
+
+// Saldo veranderd in een ander tabblad? Dan hier ook verversen
+window.addEventListener("storage", function(e) {
+    if (e.key === "balance") {
+        updateBalanceDisplay();
+    }
 });
