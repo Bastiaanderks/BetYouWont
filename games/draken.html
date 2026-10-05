@@ -48,6 +48,10 @@ details{margin-top:16px;text-align:left;background:#00000055;border-radius:10px;
 summary{cursor:pointer;font-weight:bold}
 table{width:100%;border-collapse:collapse;margin-top:6px}
 td,th{padding:3px 6px;text-align:center;border-bottom:1px solid #ffffff22}
+.automenu{display:none;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}
+.automenu button{border:0;border-radius:8px;padding:8px 14px;font-weight:bold;cursor:pointer;background:#3a2f5c;color:#fff}
+.automenu button:hover{background:#5a4a8c}
+#autoBtn.on{background:#c62828}
 .rules{margin-top:12px;font-size:.8rem;opacity:.7;line-height:1.5}
 </style>
 </head>
@@ -88,8 +92,10 @@ td,th{padding:3px 6px;text-align:center;border-bottom:1px solid #ffffff22}
         <button id="betMin">−</button>
         <button id="spinBtn">SPIN</button>
         <button id="betPlus">+</button>
+        <button id="autoBtn">AUTO</button>
         <button id="sndBtn" title="Geluid">🔊</button>
     </div>
+    <div class="automenu" id="autoMenu"></div>
 
     <details><summary>Uitbetalingstabel (x lijninzet)</summary>
         <table id="pay"></table>
@@ -98,7 +104,8 @@ td,th{padding:3px 6px;text-align:center;border-bottom:1px solid #ffffff22}
         Winst op een lijn: 3 of meer gelijke symbolen van links naar rechts. Wild vervangt alles behalve het ei.
         <b>Bonus – Het Drakennest:</b> 3 eieren 🥚 blijven met een geldprijs op het veld liggen. Je krijgt 3 respins:
         elke keer dat er een nieuw ei landt, begint de teller weer op 3. Een vuurei 🐉 verdubbelt alle eieren in zijn rij.
-        Vul alle 15 plekken voor de MEGA DRAKEN JACKPOT (20x je inzet)! Schoolproject, nepgeld.
+        Vul alle 15 plekken voor de MEGA DRAKEN JACKPOT (20x je inzet)! Schoolproject, nepgeld.<br>
+        <b>Autoplay:</b> kies AUTO en het aantal spins (10 t/m 1000). Druk op STOP om te stoppen. Autoplay stopt ook als je saldo op is.
     </p>
 </main>
 </section>
@@ -128,7 +135,7 @@ const SYM = [
     { id: "cr", s: "👑", w: 7,  p: [6, 20, 75], emo: 1 },
     { id: "di", s: "💎", w: 5,  p: [10, 40, 150], emo: 1 },
     { id: "wd", s: "🐉", w: 4,  p: [15, 60, 250], emo: 1, wild: 1 },
-    { id: "eg", s: "🥚", w: 8,  emo: 1, scatter: 1 }
+    { id: "eg", s: "🥚", w: 4,  emo: 1, scatter: 1 }
 ];
 const WILD = SYM.find(x => x.wild), LINES = [
     [1,1,1,1,1],[0,0,0,0,0],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
@@ -138,7 +145,7 @@ const WILD = SYM.find(x => x.wild), LINES = [
 ];
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-let betIndex = 0, busy = false, snd = true, ac, grid = [];
+let betIndex = 0, busy = false, snd = true, ac, grid = [], autoRun = false, autoLeft = 0;
 const bet = () => BETS[betIndex], lineBet = () => bet() / 20;
 
 function tone(f, d = .12, t = "sine") {
@@ -178,7 +185,7 @@ async function animate(final, slow) {
             clearInterval(iv);
             for (let r = 0; r < 3; r++) grid[r][c] = final[r][c];
             render(); tone(180 + c * 40, .08, "square"); res();
-        }, (slow ? 800 : 500) + c * 250);
+        }, (autoRun ? 250 : slow ? 800 : 500) + c * (autoRun ? 120 : 250));
     })));
     $("reels").classList.remove("spinning");
 }
@@ -233,9 +240,9 @@ async function resolveWin(mult) {
 }
 
 async function spin() {
-    if (busy) return;
-    if (getBalance() < bet()) { $("msg").textContent = "Te weinig saldo voor deze inzet. Verlaag je inzet of koop saldo."; return; }
-    if (!subtractBalance(bet())) return;
+    if (busy) return false;
+    if (getBalance() < bet()) { $("msg").textContent = "Te weinig saldo voor deze inzet. Verlaag je inzet of koop saldo."; return false; }
+    if (!subtractBalance(bet())) return false;
     busy = true; lock(true);
     $("msg").textContent = ""; $("winShow").textContent = "€0";
     const final = Array.from({ length: 3 }, () => Array.from({ length: 5 }, (_, c) => pick(c)));
@@ -244,6 +251,7 @@ async function spin() {
     $("msg").textContent = win > 0 ? "🎉 Je wint €" + win : "Geen winst, probeer opnieuw!";
     if (scatters() >= 3) { await sleep(700); await bonus(); }
     busy = false; lock(false);
+    return true;
 }
 
 // ---------- BONUS: HET DRAKENNEST (hold & win) ----------
@@ -339,18 +347,61 @@ async function bonus() {
     render();
 }
 
-function lock(off) { ["spinBtn", "betMin", "betPlus"].forEach(id => $(id).disabled = off); }
+function lock(off) { ["spinBtn", "betMin", "betPlus"].forEach(id => $(id).disabled = off || autoRun); }
 function showBet() { $("betShow").textContent = "€" + bet(); }
 
 $("betMin").onclick = () => { betIndex = Math.max(0, betIndex - 1); showBet(); };
 $("betPlus").onclick = () => { betIndex = Math.min(BETS.length - 1, betIndex + 1); showBet(); };
 async function safeSpin() {
-    try { await spin(); }
-    catch (e) { console.error(e); $("msg").textContent = "Er ging iets mis: " + e.message; busy = false; lock(false); }
+    try { return await spin(); }
+    catch (e) { console.error(e); $("msg").textContent = "Er ging iets mis: " + e.message; busy = false; lock(false); return false; }
 }
+
+// ---------- AUTOPLAY ----------
+const AUTO_OPTIES = [10, 25, 50, 75, 100, 500, 1000];
+
+function updateAutoBtn() {
+    const b = $("autoBtn");
+    b.textContent = autoRun ? "STOP (" + autoLeft + ")" : "AUTO";
+    b.classList.toggle("on", autoRun);
+}
+
+function stopAuto(bericht) {
+    autoRun = false; autoLeft = 0;
+    updateAutoBtn();
+    lock(busy);
+    if (bericht) $("msg").textContent = bericht;
+}
+
+async function startAuto(n) {
+    $("autoMenu").style.display = "none";
+    autoRun = true; autoLeft = n;
+    updateAutoBtn(); lock(true);
+    while (autoRun && autoLeft > 0) {
+        if (busy) { await sleep(200); continue; }
+        const gelukt = await safeSpin();
+        if (gelukt === false) { stopAuto("Autoplay gestopt (te weinig saldo of fout)."); return; }
+        autoLeft--; updateAutoBtn();
+        await sleep(500);
+    }
+    stopAuto(autoLeft === 0 ? "Autoplay klaar." : "Autoplay gestopt.");
+}
+
+AUTO_OPTIES.forEach(n => {
+    const k = document.createElement("button");
+    k.textContent = n + "x";
+    k.onclick = () => startAuto(n);
+    $("autoMenu").appendChild(k);
+});
+$("autoBtn").onclick = () => {
+    if (autoRun) { autoRun = false; $("autoBtn").textContent = "STOPPEN…"; return; }   // stopt na de huidige spin
+    if (busy) return;
+    const m = $("autoMenu");
+    m.style.display = m.style.display === "flex" ? "none" : "flex";
+};
 $("spinBtn").onclick = safeSpin;
 $("sndBtn").onclick = () => { snd = !snd; $("sndBtn").textContent = snd ? "🔊" : "🔇"; };
-document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); safeSpin(); } });
+document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); if (!autoRun) safeSpin(); } });
 
 $("pay").innerHTML = "<tr><th></th><th>3x</th><th>4x</th><th>5x</th></tr>" +
     SYM.filter(x => x.p).reverse().map(x => "<tr><td>" + x.s + "</td><td>" + x.p.join("</td><td>") + "</td></tr>").join("") +
