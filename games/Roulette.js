@@ -3,7 +3,6 @@
 // =====================================================
 
 // De echte volgorde van de nummers op een Europees roulettewiel.
-// Die is niet 0,1,2,3... maar precies deze reeks:
 const WIEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11,
               30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18,
               29, 7, 28, 12, 35, 3, 26];
@@ -15,20 +14,39 @@ function isRood(n) {
     return ROOD.includes(n);
 }
 
+function kleurVan(n) {
+    if (n === 0) return "groen";
+    return isRood(n) ? "rood" : "zwart";
+}
+
 // =====================================================
 //  SALDO
 // =====================================================
-// Let op: gebruikt dezelfde localStorage-sleutel als balance.js.
-// Staat daar een andere naam? Pas SALDO_KEY hieronder aan.
+// Gebruikt het saldo van balance.js (zelfde saldo als de andere games).
+// Is balance.js niet geladen, dan werkt het met een eigen opslag.
 const SALDO_KEY = "saldo";
 
+function heeftBalanceJs() {
+    return typeof getBalance === "function" &&
+           typeof addBalance === "function" &&
+           typeof subtractBalance === "function";
+}
+
 function getSaldo() {
+    if (heeftBalanceJs()) return getBalance();
     const opgeslagen = localStorage.getItem(SALDO_KEY);
     return opgeslagen === null ? 1000 : parseFloat(opgeslagen);
 }
 
-function setSaldo(bedrag) {
-    localStorage.setItem(SALDO_KEY, bedrag);
+function wijzigSaldo(verschil) {
+    if (verschil === 0) return;
+
+    if (heeftBalanceJs()) {
+        if (verschil > 0) addBalance(verschil);
+        else subtractBalance(-verschil);
+    } else {
+        localStorage.setItem(SALDO_KEY, getSaldo() + verschil);
+    }
     toonSaldo();
 }
 
@@ -43,6 +61,7 @@ function toonSaldo() {
 let ficheWaarde = 5;      // welk fiche is geselecteerd
 let inzetten = {};        // bv. { "nummer-17": 10, "rood": 5 }
 let draait = false;
+let winnendIndex = -1;    // welk vakje van het wiel heeft gewonnen (voor de gouden rand)
 
 function totaleInzet() {
     let totaal = 0;
@@ -61,6 +80,14 @@ function legInzet(key) {
     }
 
     inzetten[key] = (inzetten[key] || 0) + ficheWaarde;
+    toonBericht("", false);
+    ververInzetten();
+}
+
+// Rechtermuisknop haalt de inzet van dat vakje weg
+function haalInzetWeg(key) {
+    if (draait) return;
+    delete inzetten[key];
     ververInzetten();
 }
 
@@ -89,7 +116,8 @@ function ververInzetten() {
         }
     });
 
-    document.getElementById("totaleInzet").textContent = "€" + totaleInzet();
+    const totaal = document.getElementById("totaleInzet");
+    if (totaal) totaal.textContent = "€" + totaleInzet();
 }
 
 // =====================================================
@@ -134,51 +162,67 @@ const ctx = canvas.getContext("2d");
 
 const MIDDEN = canvas.width / 2;
 const SEGMENT = (Math.PI * 2) / WIEL.length;
-const R_BUITEN = 160;
-const R_BINNEN = 105;
+const R_BUITEN = MIDDEN - 10;
+const R_BINNEN = R_BUITEN * 0.66;
+const R_NUMMER = R_BUITEN - 20;               // hier staan de cijfers
+const R_BAL_START = R_BUITEN - 8;             // bal begint aan de rand
+const R_BAL_EIND = R_BINNEN + 12;             // en valt naar binnen in het vakje
 
 let wielRotatie = 0;
 let balHoek = 0;
-let balRadius = 145;
+let balRadius = R_BAL_START;
 
 function tekenWiel() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // buitenrand
+    ctx.beginPath();
+    ctx.arc(MIDDEN, MIDDEN, R_BUITEN + 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#8a6a1f";
+    ctx.fill();
 
     for (let i = 0; i < WIEL.length; i++) {
         const n = WIEL[i];
         const start = -Math.PI / 2 + i * SEGMENT + wielRotatie;
         const eind = start + SEGMENT;
+        const midden = start + SEGMENT / 2;
 
+        // het gekleurde vakje
         ctx.beginPath();
         ctx.moveTo(MIDDEN, MIDDEN);
         ctx.arc(MIDDEN, MIDDEN, R_BUITEN, start, eind);
         ctx.closePath();
         ctx.fillStyle = n === 0 ? "#00a300" : (isRood(n) ? "#d5293b" : "#101c24");
         ctx.fill();
-        ctx.strokeStyle = "#2f4553";
+        ctx.strokeStyle = "#c9a54a";
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        // nummer in het vakje
-        // Zonder correctie staat de tekst "radiaal" (recht naar buiten), wat
-        // betekent dat nummers aan de onderkant van het wiel ondersteboven
-        // komen te staan (een 12 lijkt dan bv. op een 21). Daarom draaien we
-        // het label in de onderste helft nog eens 180°, zodat elk getal
-        // altijd rechtop en leesbaar blijft.
-        const midden = start + SEGMENT / 2;
-        let hoekNorm = midden % (Math.PI * 2);
-        if (hoekNorm < 0) hoekNorm += Math.PI * 2;
-        const ondersteHelft = hoekNorm > Math.PI / 2 && hoekNorm < (Math.PI * 3) / 2;
+        // Het cijfer staat precies in het midden van zijn eigen vakje.
+        // Onderste helft wordt 180° gedraaid, zodat elk cijfer rechtop leesbaar blijft.
+        const onderkant = Math.sin(midden) > 0;
 
         ctx.save();
         ctx.translate(MIDDEN, MIDDEN);
-        ctx.rotate(midden + (ondersteHelft ? Math.PI : 0));
+        ctx.rotate(midden + Math.PI / 2 + (onderkant ? Math.PI : 0));
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 11px 'Segoe UI', sans-serif";
+        ctx.font = "bold 12px 'Segoe UI', sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const afstand = R_BUITEN - 20;
-        ctx.fillText(n, 0, ondersteHelft ? afstand : -afstand);
+        ctx.fillText(n, 0, onderkant ? R_NUMMER : -R_NUMMER);
         ctx.restore();
+    }
+
+    // gouden rand om het winnende vakje
+    if (winnendIndex >= 0) {
+        const start = -Math.PI / 2 + winnendIndex * SEGMENT + wielRotatie;
+        ctx.beginPath();
+        ctx.moveTo(MIDDEN, MIDDEN);
+        ctx.arc(MIDDEN, MIDDEN, R_BUITEN, start, start + SEGMENT);
+        ctx.closePath();
+        ctx.strokeStyle = "#ffd700";
+        ctx.lineWidth = 3;
+        ctx.stroke();
     }
 
     // binnenste schijf
@@ -186,13 +230,16 @@ function tekenWiel() {
     ctx.arc(MIDDEN, MIDDEN, R_BINNEN, 0, Math.PI * 2);
     ctx.fillStyle = "#1a2c38";
     ctx.fill();
-    ctx.strokeStyle = "#2f4553";
+    ctx.strokeStyle = "#c9a54a";
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.arc(MIDDEN, MIDDEN, 40, 0, Math.PI * 2);
+    ctx.arc(MIDDEN, MIDDEN, R_BINNEN * 0.38, 0, Math.PI * 2);
     ctx.fillStyle = "#213743";
     ctx.fill();
+    ctx.strokeStyle = "#c9a54a";
+    ctx.stroke();
 
     // het balletje
     const bx = MIDDEN + Math.cos(-Math.PI / 2 + balHoek) * balRadius;
@@ -201,6 +248,9 @@ function tekenWiel() {
     ctx.arc(bx, by, 7, 0, Math.PI * 2);
     ctx.fillStyle = "#ffffff";
     ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.4)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
 }
 
 // =====================================================
@@ -213,9 +263,9 @@ function easeOut(t) {
 function draaiNaar(index, klaar) {
     const startRotatie = wielRotatie;
 
-    // Zorg dat het gekozen vakje precies bovenaan (bij de pijl) eindigt.
+    // Het gekozen vakje eindigt precies bovenaan (bij de pijl).
+    // Het midden van vakje i ligt op (i + 0.5) * SEGMENT vanaf de bovenkant.
     const doel = Math.PI * 2 * 5 - (index + 0.5) * SEGMENT;
-    const startBal = balHoek;
     const duur = 5000;
     const begin = performance.now();
 
@@ -224,8 +274,11 @@ function draaiNaar(index, klaar) {
         const e = easeOut(t);
 
         wielRotatie = startRotatie + (doel - startRotatie) * e;
-        balHoek = startBal - (Math.PI * 2 * 9) * e;   // bal draait de andere kant op
-        balRadius = 145 - 25 * e;                      // en valt naar binnen
+
+        // De bal draait de andere kant op en eindigt precies bovenaan,
+        // dus in het winnende vakje (9 hele rondes = weer bovenaan).
+        balHoek = -(Math.PI * 2 * 9) * e;
+        balRadius = R_BAL_START - (R_BAL_START - R_BAL_EIND) * e;
 
         tekenWiel();
 
@@ -234,6 +287,9 @@ function draaiNaar(index, klaar) {
         } else {
             wielRotatie = doel % (Math.PI * 2);
             balHoek = 0;
+            balRadius = R_BAL_EIND;
+            winnendIndex = index;
+            tekenWiel();
             klaar();
         }
     }
@@ -253,30 +309,38 @@ function spin() {
         return;
     }
 
+    if (inzet > getSaldo()) {
+        toonBericht("Niet genoeg saldo voor deze inzet.", false);
+        return;
+    }
+
     draait = true;
+    winnendIndex = -1;
     document.getElementById("spinBtn").disabled = true;
     document.getElementById("wisBtn").disabled = true;
     toonBericht("", false);
     document.getElementById("resultaatNummer").textContent = "–";
+    document.getElementById("resultaatNummer").className = "resultaat-nummer";
 
-    setSaldo(getSaldo() - inzet);
+    // inzet gaat van het saldo af
+    wijzigSaldo(-inzet);
 
     const index = Math.floor(Math.random() * WIEL.length);
     const nummer = WIEL[index];
 
     draaiNaar(index, function () {
-        // uitbetalen
-        let winst = 0;
+        // uitbetalen: inzet terug + winst voor elke winnende inzet
+        let uitgekeerd = 0;
         for (const key in inzetten) {
             const factor = uitbetaling(key, nummer);
             if (factor > 0) {
-                winst += inzetten[key] * (factor + 1);   // inzet terug + winst
+                uitgekeerd += inzetten[key] * (factor + 1);
             }
         }
 
-        if (winst > 0) setSaldo(getSaldo() + winst);
+        wijzigSaldo(uitgekeerd);
 
-        toonResultaat(nummer, winst, inzet);
+        toonResultaat(nummer, uitgekeerd, inzet);
         voegToeAanHistorie(nummer);
 
         inzetten = {};
@@ -288,18 +352,19 @@ function spin() {
     });
 }
 
-function toonResultaat(nummer, winst, inzet) {
+function toonResultaat(nummer, uitgekeerd, inzet) {
     const vak = document.getElementById("resultaatNummer");
     vak.textContent = nummer;
-    vak.className = "resultaat-nummer " +
-        (nummer === 0 ? "groen" : (isRood(nummer) ? "rood" : "zwart"));
+    vak.className = "resultaat-nummer " + kleurVan(nummer);
 
-    if (winst > inzet) {
-        toonBericht(`${nummer} — je wint €${winst - inzet}.`, true);
-    } else if (winst > 0) {
-        toonBericht(`${nummer} — je krijgt €${winst} terug.`, false);
+    const netto = uitgekeerd - inzet;
+
+    if (netto > 0) {
+        toonBericht(`${nummer} ${kleurVan(nummer)} — je wint €${netto}!`, true);
+    } else if (netto === 0) {
+        toonBericht(`${nummer} ${kleurVan(nummer)} — je krijgt je inzet terug.`, false);
     } else {
-        toonBericht(`${nummer} — je verliest €${inzet}.`, false);
+        toonBericht(`${nummer} ${kleurVan(nummer)} — je verliest €${-netto}.`, false);
     }
 }
 
@@ -312,8 +377,7 @@ function toonBericht(tekst, gewonnen) {
 function voegToeAanHistorie(nummer) {
     const balk = document.getElementById("historie");
     const bol = document.createElement("span");
-    bol.className = "historie-bol " +
-        (nummer === 0 ? "groen" : (isRood(nummer) ? "rood" : "zwart"));
+    bol.className = "historie-bol " + kleurVan(nummer);
     bol.textContent = nummer;
     balk.prepend(bol);
 
@@ -325,45 +389,55 @@ function voegToeAanHistorie(nummer) {
 // =====================================================
 //  TAFEL OPBOUWEN
 // =====================================================
-// Elk vakje krijgt een VASTE positie op het rooster (grid-column/grid-row),
-// in plaats van de browser dit zelf te laten uitrekenen. Dat voorkomt dat
-// vakjes wegvallen of verkeerd staan.
+// Elk vakje krijgt een VASTE positie op het rooster (grid-column/grid-row).
 //
 // Kolommen: 1 = nul, 2 t/m 13 = de 12 getallenkolommen, 14 = 2:1-vakje
 // Rijen:    1 = bovenste (3,6,9...), 2 = midden (2,5,8...), 3 = onder (1,4,7...)
+//           4 = dozijnen, 5 = buitenweddenschappen (alleen als ze nog niet in de HTML staan)
+function maakVak(klasse, bet, tekst, kolom, rij) {
+    const vak = document.createElement("div");
+    vak.className = "inzet-vak " + klasse;
+    vak.dataset.bet = bet;
+    vak.textContent = tekst;
+    vak.style.gridColumn = kolom;
+    vak.style.gridRow = rij;
+    return vak;
+}
+
 function bouwTafel() {
     const grid = document.getElementById("nummerGrid");
     grid.innerHTML = "";
 
     // de nul, links, over alle 3 de rijen
-    const nul = document.createElement("div");
-    nul.className = "inzet-vak nul";
-    nul.dataset.bet = "nummer-0";
-    nul.textContent = "0";
-    nul.style.gridColumn = "1";
-    nul.style.gridRow = "1 / span 3";
-    grid.appendChild(nul);
+    grid.appendChild(maakVak("nul", "nummer-0", "0", "1", "1 / span 3"));
 
     for (let rij = 0; rij < 3; rij++) {
         for (let kolom = 0; kolom < 12; kolom++) {
+            // bovenste rij = 3,6,9..., midden = 2,5,8..., onderste = 1,4,7...
             const n = kolom * 3 + (3 - rij);
-            const vak = document.createElement("div");
-            vak.className = "inzet-vak nummer " + (isRood(n) ? "kleur-rood" : "kleur-zwart");
-            vak.dataset.bet = "nummer-" + n;
-            vak.textContent = n;
-            vak.style.gridColumn = (kolom + 2).toString();   // kolom 0 -> grid-kolom 2
-            vak.style.gridRow = (rij + 1).toString();
-            grid.appendChild(vak);
+            grid.appendChild(maakVak(
+                "nummer " + (isRood(n) ? "kleur-rood" : "kleur-zwart"),
+                "nummer-" + n, n,
+                String(kolom + 2), String(rij + 1)
+            ));
         }
 
-        // kolominzet (2:1) aan het eind van elke rij
-        const kolomVak = document.createElement("div");
-        kolomVak.className = "inzet-vak kolom";
-        kolomVak.dataset.bet = "kolom-" + (3 - rij);
-        kolomVak.textContent = "2:1";
-        kolomVak.style.gridColumn = "14";
-        kolomVak.style.gridRow = (rij + 1).toString();
-        grid.appendChild(kolomVak);
+        // kolominzet (2:1) aan het eind van elke rij: bovenste rij = kolom met 3,6,9...
+        grid.appendChild(maakVak("kolom", "kolom-" + (3 - rij), "2:1", "14", String(rij + 1)));
+    }
+
+    // Buitenweddenschappen: alleen toevoegen als ze niet al in de HTML staan
+    if (!document.querySelector('[data-bet="rood"]')) {
+        grid.appendChild(maakVak("buiten", "dozijn-1", "1e 12", "2 / span 4", "4"));
+        grid.appendChild(maakVak("buiten", "dozijn-2", "2e 12", "6 / span 4", "4"));
+        grid.appendChild(maakVak("buiten", "dozijn-3", "3e 12", "10 / span 4", "4"));
+
+        grid.appendChild(maakVak("buiten", "laag",   "1-18",   "2 / span 2",  "5"));
+        grid.appendChild(maakVak("buiten", "even",   "Even",   "4 / span 2",  "5"));
+        grid.appendChild(maakVak("buiten kleur-rood",  "rood",  "Rood",  "6 / span 2",  "5"));
+        grid.appendChild(maakVak("buiten kleur-zwart", "zwart", "Zwart", "8 / span 2",  "5"));
+        grid.appendChild(maakVak("buiten", "oneven", "Oneven", "10 / span 2", "5"));
+        grid.appendChild(maakVak("buiten", "hoog",   "19-36",  "12 / span 2", "5"));
     }
 }
 
@@ -376,6 +450,10 @@ tekenWiel();
 
 document.querySelectorAll(".inzet-vak").forEach(vak => {
     vak.addEventListener("click", () => legInzet(vak.dataset.bet));
+    vak.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        haalInzetWeg(vak.dataset.bet);
+    });
 });
 
 document.querySelectorAll(".fiche").forEach(knop => {

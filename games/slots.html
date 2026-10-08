@@ -16,11 +16,26 @@
     text-align: center;
     padding: 20px 10px 60px;
     position: relative;
-    background-image:
-      linear-gradient(rgba(10,2,4,0.88), rgba(10,2,4,0.92)),
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background: #0f212e;
+  }
+  .topbar {
+    text-align: left;
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    display: inline-block;
+    color: #ffd700;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 8px 16px;
+    border: 1px solid #8a6a1f;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.35);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .back-btn:hover {
+    background: rgba(255,215,0,0.12);
+    box-shadow: 0 0 10px rgba(255,215,0,0.35);
   }
   h1 {
     color: #ffd700;
@@ -211,6 +226,10 @@
 </style>
 </head>
 <body>
+
+<div class="topbar">
+  <a class="back-btn" href="../games.html">&larr; Terug naar games</a>
+</div>
 
 <h1>DIONYSOS SLOTS</h1>
 <div class="subtitle">5 walsen &middot; 5 winlijnen &middot; 3x Dionysus = 10 gratis spins</div>
