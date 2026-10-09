@@ -442,8 +442,46 @@ function bouwTafel() {
 }
 
 // =====================================================
+//  TERUG-KNOP
+// =====================================================
+// Pas dit pad aan als games.html ergens anders staat.
+const TERUG_PAD = "../games.html";
+
+function maakTerugKnop() {
+    const knop = document.createElement("a");
+    knop.href = TERUG_PAD;
+    knop.textContent = "← Terug naar games";
+    knop.style.cssText =
+        "display:inline-block;margin:0 0 14px 0;padding:8px 16px;" +
+        "color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;" +
+        "background:#213743;border:1px solid #2f4553;border-radius:8px;" +
+        "transition:background 0.2s, border-color 0.2s;";
+    knop.addEventListener("mouseenter", () => {
+        knop.style.background = "#2f4553";
+        knop.style.borderColor = "#00e701";
+    });
+    knop.addEventListener("mouseleave", () => {
+        knop.style.background = "#213743";
+        knop.style.borderColor = "#2f4553";
+    });
+
+    const houder = document.createElement("div");
+    houder.style.cssText = "text-align:center;margin:20px 0 0 0;";
+    houder.appendChild(knop);
+
+    // Net boven de titel "Roulette" (onder de navigatiebalk)
+    const titel = document.querySelector("main h1") || document.querySelector("h1");
+    if (titel) {
+        titel.parentNode.insertBefore(houder, titel);
+    } else {
+        (document.querySelector("main") || document.body).prepend(houder);
+    }
+}
+
+// =====================================================
 //  START
 // =====================================================
+maakTerugKnop();
 bouwTafel();
 toonSaldo();
 tekenWiel();
