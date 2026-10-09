@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duivels Deal 666 - BetYouWon't</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100vh;
+  }
+  body {
+    font-family: 'Georgia', serif;
+    color: #ffe9d6;
+    text-align: center;
+    padding: 20px 10px 60px;
+    background: #0f212e;
+  }
+  .topbar {
+    text-align: left;
+    margin-bottom: 10px;
+  }
+  .back-btn {
+    display: inline-block;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 16px;
+    background: #213743;
+    border: 1px solid #2f4553;
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .back-btn:hover {
+    background: #2f4553;
+    border-color: #ff5a1f;
+  }
+  h1 {
+    color: #ff5a1f;
+    font-size: 42px;
+    letter-spacing: 3px;
+    margin: 6px 0 4px;
+    text-shadow: 0 0 14px rgba(255,90,31,0.7), 0 0 30px rgba(255,40,0,0.4);
+    animation: flicker 3s infinite;
+  }
+  h1 span { color: #35d0ff; text-shadow: 0 0 14px rgba(53,208,255,0.8); }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    45% { opacity: 1; }
+    48% { opacity: 0.8; }
+    50% { opacity: 1; }
+    53% { opacity: 0.88; }
+    55% { opacity: 1; }
+  }
+  .subtitle {
+    color: #f2a37a;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+  #machine {
+    display: inline-block;
+    background: linear-gradient(160deg, #3b0d0d, #1a0606);
+    border: 6px solid #ff5a1f;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 0 40px rgba(255,60,0,0.35), inset 0 0 30px rgba(255,90,31,0.18);
+  }
+  #reels {
+    display: flex;
+    gap: 6px;
+    background: #0a0303;
+    border: 3px solid #8a2a0f;
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .reel {
+    width: 90px;
+    height: 270px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(#000, #1b0a0a 10%, #1b0a0a 90%, #000);
+    border-radius: 6px;
+    border: 2px solid #6b2a1a;
+  }
+  .reel::before, .reel::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 25px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .reel::before { top: 0; background: linear-gradient(rgba(0,0,0,0.85), transparent); }
+  .reel::after  { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); }
+  .strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sym {
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .sym span {
+    font-size: 54px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.7));
+    user-select: none;
+  }
+  .sym.wild span { filter: drop-shadow(0 0 10px rgba(255,170,40,0.95)); }
+  .sym.bonus span { filter: drop-shadow(0 0 10px rgba(255,40,0,0.95)); }
+  .line-highlight {
+    position: absolute;
+    left: 4px; right: 4px;
+    height: 90px;
+    border: 2px solid rgba(255,140,40,0);
+    border-radius: 6px;
+    pointer-events: none;
+    transition: border-color 0.3s;
+    z-index: 4;
+  }
+  .line-highlight.win {
+    border-color: rgba(255,140,40,0.95);
+    box-shadow: 0 0 18px rgba(255,100,20,0.85), inset 0 0 12px rgba(255,120,30,0.5);
+  }
+  .scatter-highlight {
+    position: absolute;
+    inset: 4px;
+    border: 3px solid rgba(53,208,255,0);
+    border-radius: 8px;
+    pointer-events: none;
+    transition: border-color 0.3s;
+    z-index: 5;
+  }
+  .scatter-highlight.win {
+    border-color: rgba(53,208,255,0.95);
+    box-shadow: 0 0 16px rgba(53,208,255,0.9);
+  }
+  #controls {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .info-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #8a2a0f;
+    border-radius: 8px;
+    padding: 8px 16px;
+    min-width: 100px;
+  }
+  .info-box .label { font-size: 12px; color: #f2a37a; text-transform: uppercase; letter-spacing: 1px; }
+  .info-box .value { font-size: 20px; color: #ff9a4d; font-weight: bold; }
+  #betControls { display: flex; align-items: center; gap: 8px; }
+  #betControls button {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: #8a2a0f;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  #betInput {
+    width: 80px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff9a4d;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #8a2a0f;
+    border-radius: 6px;
+    padding: 4px;
+  }
+  #spinBtn {
+    font-size: 22px;
+    padding: 16px 44px;
+    border-radius: 50px;
+    border: 3px solid #ff9a4d;
+    background: linear-gradient(180deg, #ff4d2e, #a80f00);
+    color: #fff;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #6e0900, 0 6px 14px rgba(0,0,0,0.5);
+  }
+  #spinBtn.freespin {
+    border-color: #35d0ff;
+    background: linear-gradient(180deg, #2cc0ff, #0a5f9e);
+    box-shadow: 0 4px 0 #063f68, 0 6px 14px rgba(0,0,0,0.5);
+  }
+  #spinBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #6e0900; }
+  #spinBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status {
+    margin-top: 16px;
+    min-height: 30px;
+    font-size: 20px;
+    color: #ff9a4d;
+    text-shadow: 0 0 8px rgba(255,90,31,0.5);
+  }
+  #freeSpinsBanner {
+    display: none;
+    margin-top: 10px;
+    font-size: 18px;
+    color: #35d0ff;
+    text-shadow: 0 0 10px rgba(53,208,255,0.7);
+  }
+  #freeSpinsBanner.show { display: block; }
+  #paytableToggle {
+    margin-top: 14px;
+    background: none;
+    border: 1px solid #8a2a0f;
+    color: #f2a37a;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #paytable {
+    display: none;
+    margin: 14px auto 0;
+    max-width: 480px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #8a2a0f;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: left;
+  }
+  #paytable.show { display: block; }
+  .pt-row { display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .pt-row .pt-sym { font-size: 28px; width: 40px; text-align: center; }
+  .pt-row .pt-vals { font-size: 13px; color: #f2a37a; }
+  .pt-note { font-size: 12px; color: #35d0ff; margin-top: 8px; line-height: 1.5; }
+
+  /* ===== BONUS: DUIVELSWIELEN ===== */
+  #bonusOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: radial-gradient(circle at 50% 30%, rgba(90,10,0,0.95), rgba(6,2,2,0.97));
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 20px;
+  }
+  #bonusOverlay.show { display: flex; }
+  .bonus-box { max-width: 980px; width: 100%; text-align: center; }
+  .bonus-box h2 {
+    margin: 0 0 6px;
+    font-size: 36px;
+    letter-spacing: 3px;
+    color: #ff5a1f;
+    text-shadow: 0 0 16px rgba(255,90,31,0.8);
+  }
+  #bonusText { color: #f2a37a; margin: 0 0 6px; font-style: italic; }
+  #wheelRow {
+    --w: min(190px, 27vw);
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 24px;
+  }
+  .wheel-wrap {
+    position: relative;
+    width: var(--w);
+    height: var(--w);
+    margin-bottom: 44px;
+  }
+  .wheel-disc {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 4px solid #ffb347;
+    box-shadow: 0 0 22px rgba(255,90,31,0.55);
+    overflow: hidden;
+    transform: rotate(0deg);
+  }
+  .wheel-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    font-weight: bold;
+    color: #fff;
+    font-size: calc(var(--w) * 0.105);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  .wheel-label span {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+  }
+  .wheel-hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--w) * 0.27);
+    height: calc(var(--w) * 0.27);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #1a0606;
+    border: 3px solid #ffb347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--w) * 0.14);
+    z-index: 2;
+  }
+  .wheel-pointer {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 24px solid #ffd24d;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    z-index: 3;
+  }
+  .wheel-result {
+    position: absolute;
+    top: 100%;
+    left: -10px;
+    right: -10px;
+    margin-top: 10px;
+    font-size: 17px;
+    font-weight: bold;
+    color: #ffd24d;
+    min-height: 24px;
+  }
+  #bonusSummary {
+    min-height: 56px;
+    margin-top: 6px;
+    font-size: 22px;
+    color: #ffd24d;
+    text-shadow: 0 0 10px rgba(255,170,40,0.6);
+  }
+  #bonusBtn {
+    font-size: 20px;
+    padding: 14px 40px;
+    border-radius: 50px;
+    border: 3px solid #ff9a4d;
+    background: linear-gradient(180deg, #ff4d2e, #a80f00);
+    color: #fff;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #6e0900, 0 6px 14px rgba(0,0,0,0.5);
+  }
+  #bonusBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="../games.html">&larr; Terug naar games</a>
+</div>
+
+<h1>DUIVELS DEAL <span>666</span></h1>
+<div class="subtitle">5 walsen &middot; 5 winlijnen &middot; 3x &#128520; = duivelswielen vol kansen &middot; &#128520; op het rad = 10 gratis spins</div>
+
+<div id="machine">
+  <div id="reels"></div>
+</div>
+
+<div id="controls">
+  <div class="info-box">
+    <div class="label">Saldo</div>
+    <div class="value" id="saldoVal">€1000</div>
+  </div>
+  <div id="betControls">
+    <button onclick="changeBet(-50)">-</button>
+    <div class="info-box">
+      <div class="label">Inzet</div>
+      <input type="number" id="betInput" value="10" min="5" max="5000" step="5" onchange="setBetFromInput()">
+    </div>
+    <button onclick="changeBet(50)">+</button>
+  </div>
+  <button id="spinBtn" onclick="spin()">SPIN</button>
+</div>
+
+<div id="status">Maak een deal met de duivel...</div>
+<div id="freeSpinsBanner"></div>
+<button id="paytableToggle" onclick="togglePaytable()">Uitbetalingstabel tonen</button>
+<div id="paytable"></div>
+
+<!-- Bonus: de duivelswielen -->
+<div id="bonusOverlay">
+  <div class="bonus-box">
+    <h2>DUIVELSWIELEN</h2>
+    <p id="bonusText"></p>
+    <div id="wheelRow"></div>
+    <div id="bonusSummary"></div>
+    <button id="bonusBtn">DRAAI DE WIELEN</button>
+  </div>
+</div>
+
+<script src="../balance.js"></script>
+<script>
+/* ========================================================================
+   INSTELLINGEN - pas hier de spelregels aan
+   pay = uitbetaling als VEELVOUD VAN JE INZET, per winlijn (3, 4 of 5 op een rij)
+   weight = hoe vaak het symbool voorkomt (hoger = vaker)
+   ======================================================================== */
+
+const SYMBOLS = {
+  "🕯️": { name: "Kaars",     weight: 52, pay: {3: 1.1, 4: 3.2, 5: 8} },
+  "📜": { name: "Contract",  weight: 46, pay: {3: 1.3, 4: 4,   5: 10} },
+  "💀": { name: "Schedel",   weight: 38, pay: {3: 1.6, 4: 5,   5: 14} },
+  "🦇": { name: "Vleermuis", weight: 30, pay: {3: 2.1, 4: 7,   5: 20} },
+  "🔥": { name: "Hellevuur", weight: 22, pay: {3: 3,   4: 12,  5: 35} },
+  "🐍": { name: "Slang",     weight: 16, pay: {3: 5,   4: 20,  5: 70} },
+  "👹": { name: "Demon",     weight: 10, pay: {3: 10,  4: 40,  5: 150} },
+  "🔱": { name: "Drietand (wild)",  weight: 10, pay: {3: 25, 4: 100, 5: 500} },
+  "😈": { name: "Duivel (bonus)",   weight: 14,  pay: {} },
+};
+
+const WILD_SYMBOL = "🔱";             // vervangt alle symbolen behalve de duivel
+const BONUS_SYMBOL = "😈";            // 3 of meer (ongeacht positie) = duivelswielen
+const BONUS_MIN_COUNT = 3;            // hoeveel duivels nodig zijn
+const MAX_WHEELS = 5;                 // maximaal aantal wielen (1 per duivel)
+const FREE_SPINS_PER_DEVIL = 10;      // gratis spins voor elke duivel die op een wiel landt
+const FREE_SPIN_MULTIPLIER = 2;       // alle winst op de walsen tijdens gratis spins x2
+
+// De vakjes van elk duivelswiel. m = veelvoud van je inzet, spins = de duivel (gratis spins).
+// Wil je meer duivels op het wiel? Verander een vakje in { spins: true }.
+const BONUS_WHEEL = [
+  { m: 2 }, { m: 3 }, { m: 2 }, { m: 5 },
+  { spins: true },
+  { m: 2 }, { m: 3 }, { m: 10 },
+  { spins: true },
+  { m: 25 }, { m: 3 }, { m: 5 },
+];
+
+const MIN_BET = 5;
+const MAX_BET = 5000;
+
+/* ========================================================================
+   SPEL-LOGICA - hier hoef je normaal niks te veranderen
+   ======================================================================== */
+
+const SYMBOL_KEYS = Object.keys(SYMBOLS);
+
+const WEIGHTED_POOL = [];
+SYMBOL_KEYS.forEach(key => {
+  for (let i = 0; i < SYMBOLS[key].weight; i++) WEIGHTED_POOL.push(key);
+});
+
+function randomSymbol() {
+  return WEIGHTED_POOL[Math.floor(Math.random() * WEIGHTED_POOL.length)];
+}
+
+const NUM_REELS = 5;
+const VISIBLE_ROWS = 3;
+const STRIP_LENGTH = 24;
+const CELL = 90;
+
+const PAYLINES = [
+  [1,1,1,1,1],
+  [0,0,0,0,0],
+  [2,2,2,2,2],
+  [0,1,2,1,0],
+  [2,1,0,1,2],
+];
+
+// Het saldo komt uit balance.js (getBalance / addBalance / subtractBalance)
+let bet = 10;
+let spinning = false;
+let freeSpinsRemaining = 0;
+let freeSpinWinTotal = 0;
+
+const reelsContainer = document.getElementById('reels');
+const strips = [];
+const reelDivs = [];
+const scatterOverlays = [];
+
+function makeSymbolEl(key) {
+  const div = document.createElement('div');
+  div.className = 'sym';
+  if (key === WILD_SYMBOL) div.classList.add('wild');
+  if (key === BONUS_SYMBOL) div.classList.add('bonus');
+  div.dataset.key = key;
+  const span = document.createElement('span');
+  span.textContent = key;
+  div.appendChild(span);
+  return div;
+}
+
+for (let r = 0; r < NUM_REELS; r++) {
+  const reelDiv = document.createElement('div');
+  reelDiv.className = 'reel';
+
+  const strip = document.createElement('div');
+  strip.className = 'strip';
+  strips.push(strip);
+
+  for (let i = 0; i < STRIP_LENGTH; i++) {
+    strip.appendChild(makeSymbolEl(randomSymbol()));
+  }
+  reelDiv.appendChild(strip);
+
+  for (let row = 0; row < VISIBLE_ROWS; row++) {
+    const hl = document.createElement('div');
+    hl.className = 'line-highlight';
+    hl.style.top = (row * CELL) + 'px';
+    hl.dataset.row = row;
+    reelDiv.appendChild(hl);
+  }
+
+  const scatterHl = document.createElement('div');
+  scatterHl.className = 'scatter-highlight';
+  reelDiv.appendChild(scatterHl);
+  scatterOverlays.push(scatterHl);
+
+  reelsContainer.appendChild(reelDiv);
+  reelDivs.push(reelDiv);
+}
+
+function updateUI() {
+  document.getElementById('saldoVal').textContent = '€' + getBalance();
+  document.getElementById('betInput').value = bet;
+
+  const banner = document.getElementById('freeSpinsBanner');
+  const btn = document.getElementById('spinBtn');
+  if (freeSpinsRemaining > 0) {
+    banner.textContent = `Gratis spins over: ${freeSpinsRemaining} \u2014 winst op de walsen x${FREE_SPIN_MULTIPLIER}`;
+    banner.classList.add('show');
+    btn.textContent = 'GRATIS SPIN';
+    btn.classList.add('freespin');
+  } else {
+    banner.classList.remove('show');
+    btn.textContent = 'SPIN';
+    btn.classList.remove('freespin');
+  }
+}
+
+function clampBet(value) {
+  value = Math.round(value / 5) * 5;
+  return Math.max(MIN_BET, Math.min(MAX_BET, value));
+}
+
+function changeBet(delta) {
+  if (spinning) return;
+  bet = clampBet(bet + delta);
+  updateUI();
+}
+
+function setBetFromInput() {
+  if (spinning) return;
+  let value = parseInt(document.getElementById('betInput').value, 10);
+  if (isNaN(value)) value = MIN_BET;
+  bet = clampBet(value);
+  updateUI();
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.line-highlight').forEach(el => el.classList.remove('win'));
+  scatterOverlays.forEach(el => el.classList.remove('win'));
+}
+
+function spin() {
+  if (spinning) return;
+
+  const usingFreeSpin = freeSpinsRemaining > 0;
+
+  if (!usingFreeSpin && getBalance() < bet) {
+    document.getElementById('status').textContent = 'Niet genoeg saldo!';
+    return;
+  }
+
+  spinning = true;
+
+  if (usingFreeSpin) {
+    freeSpinsRemaining--;
+  } else {
+    subtractBalance(bet);
+    freeSpinWinTotal = 0;
+  }
+  updateUI();
+  clearHighlights();
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('status').textContent = usingFreeSpin ? 'Gratis spin draait...' : 'Draaien...';
+
+  const finalResults = [];
+
+  strips.forEach((strip, reelIndex) => {
+    strip.innerHTML = '';
+    strip.style.transition = 'none';
+    strip.style.transform = 'translateY(0px)';
+
+    const finalSymbols = [randomSymbol(), randomSymbol(), randomSymbol()];
+    finalResults.push(finalSymbols);
+
+    const total = STRIP_LENGTH + VISIBLE_ROWS;
+    for (let i = 0; i < total; i++) {
+      const key = i >= total - VISIBLE_ROWS
+        ? finalSymbols[i - (total - VISIBLE_ROWS)]
+        : randomSymbol();
+      strip.appendChild(makeSymbolEl(key));
+    }
+
+    void strip.offsetHeight;
+
+    const distance = (total - VISIBLE_ROWS) * CELL;
+    const duration = 1.6 + reelIndex * 0.35;
+
+    strip.style.transition = `transform ${duration}s cubic-bezier(0.2, 0.8, 0.3, 1)`;
+    strip.style.transform = `translateY(-${distance}px)`;
+  });
+
+  const longestDuration = (1.6 + (NUM_REELS - 1) * 0.35) * 1000 + 150;
+
+  setTimeout(() => {
+    const uitkomst = evaluateWin(finalResults, usingFreeSpin);
+
+    if (uitkomst.devils >= BONUS_MIN_COUNT) {
+      // Even de tijd om de duivels te zien, dan komen de wielen
+      setTimeout(() => {
+        runBonus(uitkomst.devils, bonus => finishSpin(usingFreeSpin, uitkomst, bonus));
+      }, 1400);
+    } else {
+      finishSpin(usingFreeSpin, uitkomst, null);
+    }
+  }, longestDuration);
+}
+
+// Uitbetaling (als veelvoud van de inzet) voor 1 winlijn
+function lineMultiplier(lineSymbols) {
+  let best = 0;
+
+  // Alleen wilds vanaf links (de drietand betaalt ook zelf)
+  let wilds = 0;
+  while (wilds < NUM_REELS && lineSymbols[wilds] === WILD_SYMBOL) wilds++;
+  if (wilds >= 3) best = SYMBOLS[WILD_SYMBOL].pay[wilds] || 0;
+
+  // Eerste echte symbool bepaalt de rest; wilds tellen mee als joker
+  let base = null;
+  for (const s of lineSymbols) {
+    if (s !== WILD_SYMBOL) { base = s; break; }
+  }
+
+  if (base !== null && base !== BONUS_SYMBOL) {
+    let count = 0;
+    for (const s of lineSymbols) {
+      if (s === base || s === WILD_SYMBOL) count++;
+      else break;
+    }
+    if (count >= 3) best = Math.max(best, SYMBOLS[base].pay[count] || 0);
+  }
+
+  return best;
+}
+
+function evaluateWin(results, usingFreeSpin) {
+  let totalMultiplier = 0;
+  const winningLines = [];
+
+  PAYLINES.forEach((rowsPerReel, lineIndex) => {
+    const lineSymbols = rowsPerReel.map((row, reelIndex) => results[reelIndex][row]);
+    const m = lineMultiplier(lineSymbols);
+    if (m > 0) {
+      totalMultiplier += m;
+      winningLines.push(lineIndex);
+    }
+  });
+
+  if (usingFreeSpin) totalMultiplier *= FREE_SPIN_MULTIPLIER;
+  const totalWin = Math.round(totalMultiplier * bet);
+
+  let devils = 0;
+  const devilReels = [];
+  results.forEach((reelSymbols, reelIndex) => {
+    const n = reelSymbols.filter(s => s === BONUS_SYMBOL).length;
+    if (n > 0) devilReels.push(reelIndex);
+    devils += n;
+  });
+
+  const messages = [];
+
+  if (totalWin > 0) {
+    addBalance(totalWin);
+    if (usingFreeSpin) freeSpinWinTotal += totalWin;
+    messages.push(`Gewonnen! +€${totalWin} (${winningLines.length} lijn${winningLines.length > 1 ? 'en' : ''}${usingFreeSpin ? ', x' + FREE_SPIN_MULTIPLIER : ''})`);
+    highlightWinningLines(winningLines);
+  }
+
+  // Reels met duivels lichten alleen op als de bonus echt start
+  if (devils >= BONUS_MIN_COUNT) {
+    devilReels.forEach(reelIndex => scatterOverlays[reelIndex].classList.add('win'));
+    const n = Math.min(devils, MAX_WHEELS);
+    messages.push(`&#128520; ${devils} duivels! ${n} wiel${n > 1 ? 'en' : ''} komen eraan...`);
+  }
+
+  if (messages.length > 0) {
+    document.getElementById('status').innerHTML = messages.join(' &mdash; ');
+  }
+
+  updateUI();
+  return { devils, totalWin, messages, winningLines };
+}
+
+// Rond de spin af (na eventuele bonus)
+function finishSpin(usingFreeSpin, uitkomst, bonus) {
+  const messages = uitkomst.messages.filter(m => m.indexOf('komen eraan') === -1);
+
+  if (bonus) {
+    if (bonus.prize > 0) {
+      addBalance(bonus.prize);
+      if (usingFreeSpin) freeSpinWinTotal += bonus.prize;
+    }
+    freeSpinsRemaining += bonus.spins;
+
+    const delen = [];
+    if (bonus.prize > 0) delen.push(`+€${bonus.prize}`);
+    if (bonus.spins > 0) delen.push(`+${bonus.spins} gratis spins`);
+    messages.push(`&#128520; Duivelswielen: ${delen.length ? delen.join(' en ') : 'helaas niks'}!`);
+  }
+
+  // Alle gratis spins gebruikt: laat zien wat het in totaal opleverde
+  if (usingFreeSpin && freeSpinsRemaining === 0) {
+    messages.push(`Bonus voorbij: totaal +€${freeSpinWinTotal}`);
+  }
+
+  const status = document.getElementById('status');
+  if (messages.length === 0) {
+    status.textContent = usingFreeSpin ? 'Geen winst deze gratis spin.' : 'Helaas, geen winst. Probeer opnieuw!';
+  } else {
+    status.innerHTML = messages.join(' &mdash; ');
+  }
+
+  spinning = false;
+  document.getElementById('spinBtn').disabled = false;
+  updateUI();
+}
+
+function highlightWinningLines(lineIndexes) {
+  lineIndexes.forEach(lineIndex => {
+    PAYLINES[lineIndex].forEach((row, reelIndex) => {
+      const hl = reelDivs[reelIndex].querySelector(`.line-highlight[data-row="${row}"]`);
+      if (hl) hl.classList.add('win');
+    });
+  });
+}
+
+/* ========================================================================
+   BONUS: DUIVELSWIELEN
+   Bij 3+ duivels komt er voor elke duivel een wiel (max 5).
+   Elk wiel geeft een veelvoud van je inzet, of een duivel = 10 gratis spins.
+   ======================================================================== */
+
+function wielKleur(vak, index) {
+  if (vak.spins) return '#1aa7d8';
+  if (vak.m >= 25) return '#d4a017';
+  if (vak.m >= 10) return '#e07b00';
+  return index % 2 === 0 ? '#8a1a0a' : '#b3300f';
+}
+
+function maakWiel() {
+  const aantal = BONUS_WHEEL.length;
+  const hoek = 360 / aantal;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'wheel-wrap';
+
+  const disc = document.createElement('div');
+  disc.className = 'wheel-disc';
+
+  const delen = BONUS_WHEEL.map((vak, i) =>
+    `${wielKleur(vak, i)} ${i * hoek}deg ${(i + 1) * hoek}deg`
+  );
+  disc.style.background = `conic-gradient(from 0deg, ${delen.join(', ')})`;
+
+  BONUS_WHEEL.forEach((vak, i) => {
+    const label = document.createElement('div');
+    label.className = 'wheel-label';
+    label.style.transform =
+      `rotate(${(i + 0.5) * hoek}deg) translateY(calc(var(--w) * -0.36))`;
+    const tekst = document.createElement('span');
+    tekst.textContent = vak.spins ? '😈' : 'x' + vak.m;
+    label.appendChild(tekst);
+    disc.appendChild(label);
+  });
+
+  const hub = document.createElement('div');
+  hub.className = 'wheel-hub';
+  hub.textContent = '😈';
+
+  const pointer = document.createElement('div');
+  pointer.className = 'wheel-pointer';
+
+  const resultaat = document.createElement('div');
+  resultaat.className = 'wheel-result';
+
+  wrap.appendChild(disc);
+  wrap.appendChild(hub);
+  wrap.appendChild(pointer);
+  wrap.appendChild(resultaat);
+
+  return { wrap, disc, resultaat };
+}
+
+// Draait een wiel zo dat vak 'vakIndex' precies onder de pijl (bovenaan) eindigt
+function draaiWiel(wiel, vakIndex, seconden, extraRondes) {
+  const hoek = 360 / BONUS_WHEEL.length;
+  const afwijking = (Math.random() - 0.5) * hoek * 0.5;   // niet altijd precies in het midden
+  const doel = 360 * (5 + extraRondes) - ((vakIndex + 0.5) * hoek + afwijking);
+
+  wiel.disc.style.transition = `transform ${seconden}s cubic-bezier(0.12, 0.7, 0.15, 1)`;
+  wiel.disc.style.transform = `rotate(${doel}deg)`;
+}
+
+function runBonus(devils, klaar) {
+  const overlay = document.getElementById('bonusOverlay');
+  const rij = document.getElementById('wheelRow');
+  const tekst = document.getElementById('bonusText');
+  const samenvatting = document.getElementById('bonusSummary');
+  const knop = document.getElementById('bonusBtn');
+
+  const aantalWielen = Math.min(devils, MAX_WHEELS);
+
+  rij.innerHTML = '';
+  samenvatting.textContent = '';
+  const wielen = [];
+  for (let i = 0; i < aantalWielen; i++) {
+    const wiel = maakWiel();
+    wielen.push(wiel);
+    rij.appendChild(wiel.wrap);
+  }
+
+  tekst.textContent =
+    `${devils} duivels! Elke duivel draait een wiel` +
+    (devils > MAX_WHEELS ? ` (maximaal ${MAX_WHEELS})` : '') +
+    `. Landt een wiel op \u{1F608}, dan krijg je ${FREE_SPINS_PER_DEVIL} gratis spins.`;
+
+  knop.textContent = 'DRAAI DE WIELEN';
+  knop.disabled = false;
+  overlay.classList.add('show');
+
+  knop.onclick = function () {
+    knop.disabled = true;
+
+    // Resultaat staat vooraf vast; de animatie laat het alleen zien
+    const uitslagen = wielen.map(() => Math.floor(Math.random() * BONUS_WHEEL.length));
+    let langste = 0;
+
+    wielen.forEach((wiel, i) => {
+      const seconden = 3.6 + i * 0.7;
+      langste = Math.max(langste, seconden);
+      draaiWiel(wiel, uitslagen[i], seconden, i);
+    });
+
+    setTimeout(function () {
+      let veelvoud = 0;
+      let spins = 0;
+
+      uitslagen.forEach((vakIndex, i) => {
+        const vak = BONUS_WHEEL[vakIndex];
+        if (vak.spins) {
+          spins += FREE_SPINS_PER_DEVIL;
+          wielen[i].resultaat.textContent = `\u{1F608} +${FREE_SPINS_PER_DEVIL} spins`;
+        } else {
+          veelvoud += vak.m;
+          wielen[i].resultaat.textContent = `x${vak.m} = €${Math.round(vak.m * bet)}`;
+        }
+      });
+
+      const prize = Math.round(veelvoud * bet);
+      const delen = [];
+      if (prize > 0) delen.push(`€${prize}`);
+      if (spins > 0) delen.push(`${spins} gratis spins`);
+      samenvatting.textContent = delen.length ? 'Je wint: ' + delen.join(' + ') : 'Helaas, niks gewonnen';
+
+      knop.textContent = 'DOORGAAN';
+      knop.disabled = false;
+      knop.onclick = function () {
+        overlay.classList.remove('show');
+        klaar({ prize: prize, spins: spins });
+      };
+    }, langste * 1000 + 500);
+  };
+}
+
+/* ========================================================================
+   UITBETALINGSTABEL
+   ======================================================================== */
+
+function formatMultiplier(x) {
+  return (Number.isInteger(x) ? x : x.toString().replace('.', ',')) + 'x';
+}
+
+function togglePaytable() {
+  const el = document.getElementById('paytable');
+  el.classList.toggle('show');
+  if (el.classList.contains('show') && el.innerHTML === '') {
+    buildPaytable();
+  }
+  document.getElementById('paytableToggle').textContent =
+    el.classList.contains('show') ? 'Uitbetalingstabel verbergen' : 'Uitbetalingstabel tonen';
+}
+
+function buildPaytable() {
+  const el = document.getElementById('paytable');
+  const order = ['🔱', '👹', '🐍', '🔥', '🦇', '💀', '📜', '🕯️'];
+  order.forEach(key => {
+    const s = SYMBOLS[key];
+    const row = document.createElement('div');
+    row.className = 'pt-row';
+    row.innerHTML = `
+      <div class="pt-sym">${key}</div>
+      <div class="pt-vals"><b>${s.name}</b><br>3 op een rij: ${formatMultiplier(s.pay[3])} &nbsp; 4: ${formatMultiplier(s.pay[4])} &nbsp; 5: ${formatMultiplier(s.pay[5])}</div>
+    `;
+    el.appendChild(row);
+  });
+
+  const prijzen = [...new Set(BONUS_WHEEL.filter(v => !v.spins).map(v => v.m))]
+    .sort((a, b) => a - b).map(m => 'x' + m).join(', ');
+
+  const bonusRow = document.createElement('div');
+  bonusRow.className = 'pt-row';
+  bonusRow.innerHTML = `
+    <div class="pt-sym">😈</div>
+    <div class="pt-vals"><b>Duivel (bonus)</b><br>${BONUS_MIN_COUNT}+ duivels, waar dan ook = per duivel een wiel (max ${MAX_WHEELS})</div>
+  `;
+  el.appendChild(bonusRow);
+
+  const note = document.createElement('div');
+  note.className = 'pt-note';
+  note.innerHTML =
+    `Uitbetaling = veelvoud van je inzet per winlijn, van links naar rechts.<br>` +
+    `&#128305; is een joker en vervangt alle symbolen behalve &#128520;.<br>` +
+    `<b>Duivelswielen:</b> elk wiel geeft ${prijzen} je inzet, of &#128520; = ${FREE_SPINS_PER_DEVIL} gratis spins.<br>` +
+    `Tijdens gratis spins is de winst op de walsen x${FREE_SPIN_MULTIPLIER}. ` +
+    `Komen er in de bonus weer ${BONUS_MIN_COUNT} duivels, dan draaien de wielen opnieuw.`;
+  el.appendChild(note);
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
