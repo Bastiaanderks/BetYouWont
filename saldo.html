@@ -45,6 +45,10 @@
             Saldo kopen
         </a>
 
+        <a href="games/over-ons.html">
+            Over ons
+        </a>
+
     </nav>
 
 
@@ -90,7 +94,7 @@
             Je huidige saldo
         </p>
 
-        <strong id="balanceDisplay">
+        <strong id="currentBalanceDisplay">
             €1000
         </strong>
 
@@ -223,7 +227,7 @@
 
         <button
             class="reset-button"
-            onclick="resetBalance()"
+            onclick="resetSaldoEnWeergave()"
         >
             Reset saldo naar €1.000
         </button>
@@ -265,6 +269,15 @@
 
 <script>
 
+// Werkt het grote saldo-bedrag op deze pagina bij (naast de navbar, die
+// zichzelf al bijwerkt via balance.js)
+function updateCurrentBalanceDisplay() {
+    const el = document.getElementById("currentBalanceDisplay");
+    if (el) {
+        el.textContent = "€" + getBalance();
+    }
+}
+
 function koopSaldo(bedrag) {
 
     const bevestigen = confirm(
@@ -280,6 +293,7 @@ function koopSaldo(bedrag) {
 
 
     addBalance(bedrag);
+    updateCurrentBalanceDisplay();
 
 
     alert(
@@ -287,10 +301,14 @@ function koopSaldo(bedrag) {
         bedrag.toLocaleString("nl-NL") +
         " aan virtueel speelgeld toegevoegd."
     );
-
-
-    updateBalanceDisplay();
 }
+
+function resetSaldoEnWeergave() {
+    resetBalance();
+    updateCurrentBalanceDisplay();
+}
+
+document.addEventListener("DOMContentLoaded", updateCurrentBalanceDisplay);
 
 </script>
 
