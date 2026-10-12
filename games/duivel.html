@@ -200,6 +200,36 @@
   }
   #spinBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #6e0900; }
   #spinBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #autoBox { display: flex; align-items: center; gap: 8px; }
+  #autoCount {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff9a4d;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #8a2a0f;
+    border-radius: 6px;
+    padding: 8px;
+  }
+  #autoBtn {
+    font-size: 16px;
+    padding: 10px 22px;
+    border-radius: 50px;
+    border: 2px solid #35d0ff;
+    background: linear-gradient(180deg, #2cc0ff, #0a5f9e);
+    color: #fff;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  #autoBtn.active {
+    border-color: #ff9a4d;
+    background: linear-gradient(180deg, #ff4d2e, #a80f00);
+  }
+  .sym.demon-hit span {
+    animation: demonpop 0.9s ease-in-out 3;
+    filter: drop-shadow(0 0 14px rgba(255,215,0,1));
+  }
+  @keyframes demonpop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
   #status {
     margin-top: 16px;
     min-height: 30px;
@@ -293,7 +323,7 @@
     height: 0;
     font-weight: bold;
     color: #fff;
-    font-size: calc(var(--w) * 0.105);
+    font-size: calc(var(--w) * 0.078);
     text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   }
   .wheel-label span {
@@ -370,7 +400,7 @@
 </div>
 
 <h1>DUIVELS DEAL <span>666</span></h1>
-<div class="subtitle">5 walsen &middot; 5 winlijnen &middot; 3x &#128520; = duivelswielen vol kansen &middot; &#128520; op het rad = 10 gratis spins</div>
+<div class="subtitle">5 walsen &middot; 5 winlijnen &middot; 3x &#128520; = duivelswielen (tot x100) &middot; &#128520; op het rad = 10 gratis spins &middot; elke &#128121; in de gratis spins = x2 op je potje</div>
 
 <div id="machine">
   <div id="reels"></div>
@@ -390,6 +420,15 @@
     <button onclick="changeBet(50)">+</button>
   </div>
   <button id="spinBtn" onclick="spin()">SPIN</button>
+  <div id="autoBox">
+    <select id="autoCount">
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    <button id="autoBtn" onclick="toggleAuto()">AUTO</button>
+  </div>
 </div>
 
 <div id="status">Maak een deal met de duivel...</div>
@@ -417,15 +456,15 @@
    ======================================================================== */
 
 const SYMBOLS = {
-  "🕯️": { name: "Kaars",     weight: 52, pay: {3: 1.1, 4: 3.2, 5: 8} },
-  "📜": { name: "Contract",  weight: 46, pay: {3: 1.3, 4: 4,   5: 10} },
-  "💀": { name: "Schedel",   weight: 38, pay: {3: 1.6, 4: 5,   5: 14} },
-  "🦇": { name: "Vleermuis", weight: 30, pay: {3: 2.1, 4: 7,   5: 20} },
-  "🔥": { name: "Hellevuur", weight: 22, pay: {3: 3,   4: 12,  5: 35} },
-  "🐍": { name: "Slang",     weight: 16, pay: {3: 5,   4: 20,  5: 70} },
-  "👹": { name: "Demon",     weight: 10, pay: {3: 10,  4: 40,  5: 150} },
-  "🔱": { name: "Drietand (wild)",  weight: 10, pay: {3: 25, 4: 100, 5: 500} },
-  "😈": { name: "Duivel (bonus)",   weight: 14,  pay: {} },
+  "🕯️": { name: "Kaars",     weight: 52, pay: {3: 0.9, 4: 2.6, 5: 6.6} },
+  "📜": { name: "Contract",  weight: 46, pay: {3: 1.1, 4: 3.3, 5: 8.2} },
+  "💀": { name: "Schedel",   weight: 38, pay: {3: 1.3, 4: 4.1, 5: 11.5} },
+  "🦇": { name: "Vleermuis", weight: 30, pay: {3: 1.7, 4: 5.7, 5: 16.4} },
+  "🔥": { name: "Hellevuur", weight: 22, pay: {3: 2.5, 4: 9.8, 5: 28.7} },
+  "🐍": { name: "Slang",     weight: 16, pay: {3: 4.1, 4: 16.4, 5: 57.4} },
+  "👹": { name: "Demon",     weight: 4,  pay: {3: 8.2, 4: 32.8, 5: 123} },
+  "🔱": { name: "Drietand (wild)",  weight: 10, pay: {3: 20.5, 4: 82, 5: 410} },
+  "😈": { name: "Duivel (bonus)",   weight: 12,  pay: {} },
 };
 
 const WILD_SYMBOL = "🔱";             // vervangt alle symbolen behalve de duivel
@@ -433,16 +472,19 @@ const BONUS_SYMBOL = "😈";            // 3 of meer (ongeacht positie) = duivel
 const BONUS_MIN_COUNT = 3;            // hoeveel duivels nodig zijn
 const MAX_WHEELS = 5;                 // maximaal aantal wielen (1 per duivel)
 const FREE_SPINS_PER_DEVIL = 10;      // gratis spins voor elke duivel die op een wiel landt
-const FREE_SPIN_MULTIPLIER = 2;       // alle winst op de walsen tijdens gratis spins x2
+const DEMON_SYMBOL = "👹";            // tijdens gratis spins telt elke demon mee voor de vermenigvuldiger
+const DEMON_MULTIPLIER = 2;           // elke demon = x2 op het potje (1 demon x2, 3 demonen x6)
 
 // De vakjes van elk duivelswiel. m = veelvoud van je inzet, spins = de duivel (gratis spins).
 // Wil je meer duivels op het wiel? Verander een vakje in { spins: true }.
 const BONUS_WHEEL = [
   { m: 2 }, { m: 3 }, { m: 2 }, { m: 5 },
   { spins: true },
-  { m: 2 }, { m: 3 }, { m: 10 },
+  { m: 2 }, { m: 3 }, { m: 2 }, { m: 10 }, { m: 2 }, { m: 3 }, { m: 2 },
   { spins: true },
-  { m: 25 }, { m: 3 }, { m: 5 },
+  { m: 5 }, { m: 2 }, { m: 3 }, { m: 25 }, { m: 2 },
+  { m: 100 },
+  { m: 2 },
 ];
 
 const MIN_BET = 5;
@@ -480,7 +522,16 @@ const PAYLINES = [
 let bet = 10;
 let spinning = false;
 let freeSpinsRemaining = 0;
-let freeSpinWinTotal = 0;
+let fsActive = false;   // loopt er een ronde gratis spins?
+let fsPot = 0;          // alles wat je tijdens de gratis spins wint (wordt pas aan het eind uitbetaald)
+let fsDemons = 0;       // aantal demonen dat tijdens de gratis spins is geland
+let autoActive = false;
+let autoRemaining = 0;
+
+// Vermenigvuldiger op het potje: elke demon = x2 (zonder demonen x1)
+function fsMultiplier() {
+  return Math.max(1, DEMON_MULTIPLIER * fsDemons);
+}
 
 const reelsContainer = document.getElementById('reels');
 const strips = [];
@@ -536,7 +587,7 @@ function updateUI() {
   const banner = document.getElementById('freeSpinsBanner');
   const btn = document.getElementById('spinBtn');
   if (freeSpinsRemaining > 0) {
-    banner.textContent = `Gratis spins over: ${freeSpinsRemaining} \u2014 winst op de walsen x${FREE_SPIN_MULTIPLIER}`;
+    banner.textContent = `Gratis spins over: ${freeSpinsRemaining} \u2014 potje: €${fsPot} \u2014 demonen: ${fsDemons} (x${fsMultiplier()})`;
     banner.classList.add('show');
     btn.textContent = 'GRATIS SPIN';
     btn.classList.add('freespin');
@@ -553,13 +604,13 @@ function clampBet(value) {
 }
 
 function changeBet(delta) {
-  if (spinning) return;
+  if (spinning || autoActive) return;
   bet = clampBet(bet + delta);
   updateUI();
 }
 
 function setBetFromInput() {
-  if (spinning) return;
+  if (spinning || autoActive) return;
   let value = parseInt(document.getElementById('betInput').value, 10);
   if (isNaN(value)) value = MIN_BET;
   bet = clampBet(value);
@@ -587,7 +638,6 @@ function spin() {
     freeSpinsRemaining--;
   } else {
     subtractBalance(bet);
-    freeSpinWinTotal = 0;
   }
   updateUI();
   clearHighlights();
@@ -677,7 +727,6 @@ function evaluateWin(results, usingFreeSpin) {
     }
   });
 
-  if (usingFreeSpin) totalMultiplier *= FREE_SPIN_MULTIPLIER;
   const totalWin = Math.round(totalMultiplier * bet);
 
   let devils = 0;
@@ -691,10 +740,34 @@ function evaluateWin(results, usingFreeSpin) {
   const messages = [];
 
   if (totalWin > 0) {
-    addBalance(totalWin);
-    if (usingFreeSpin) freeSpinWinTotal += totalWin;
-    messages.push(`Gewonnen! +€${totalWin} (${winningLines.length} lijn${winningLines.length > 1 ? 'en' : ''}${usingFreeSpin ? ', x' + FREE_SPIN_MULTIPLIER : ''})`);
+    const lijnTekst = `${winningLines.length} lijn${winningLines.length > 1 ? 'en' : ''}`;
+    if (usingFreeSpin) {
+      fsPot += totalWin;                       // gratis spins: eerst in het potje
+      messages.push(`+€${totalWin} in het potje (${lijnTekst})`);
+    } else {
+      addBalance(totalWin);
+      messages.push(`Gewonnen! +€${totalWin} (${lijnTekst})`);
+    }
     highlightWinningLines(winningLines);
+  }
+
+  // Tijdens gratis spins telt elke demon mee voor de vermenigvuldiger
+  if (usingFreeSpin) {
+    let demons = 0;
+    results.forEach((reelSymbols, reelIndex) => {
+      reelSymbols.forEach((s, row) => {
+        if (s === DEMON_SYMBOL) {
+          demons++;
+          const kinderen = strips[reelIndex].children;
+          const sym = kinderen[kinderen.length - VISIBLE_ROWS + row];
+          if (sym) sym.classList.add('demon-hit');
+        }
+      });
+    });
+    if (demons > 0) {
+      fsDemons += demons;
+      messages.push(`&#128121; +${demons} demon${demons > 1 ? 'en' : ''}! Potje nu x${fsMultiplier()}`);
+    }
   }
 
   // Reels met duivels lichten alleen op als de bonus echt start
@@ -718,20 +791,34 @@ function finishSpin(usingFreeSpin, uitkomst, bonus) {
 
   if (bonus) {
     if (bonus.prize > 0) {
-      addBalance(bonus.prize);
-      if (usingFreeSpin) freeSpinWinTotal += bonus.prize;
+      if (usingFreeSpin) fsPot += bonus.prize;   // in de gratis spins ook eerst in het potje
+      else addBalance(bonus.prize);
     }
-    freeSpinsRemaining += bonus.spins;
+    if (bonus.spins > 0) {
+      if (!fsActive) {                           // nieuwe ronde gratis spins: potje en demonen beginnen op 0
+        fsActive = true;
+        fsPot = 0;
+        fsDemons = 0;
+      }
+      freeSpinsRemaining += bonus.spins;
+    }
 
     const delen = [];
-    if (bonus.prize > 0) delen.push(`+€${bonus.prize}`);
+    if (bonus.prize > 0) delen.push(usingFreeSpin ? `+€${bonus.prize} in het potje` : `+€${bonus.prize}`);
     if (bonus.spins > 0) delen.push(`+${bonus.spins} gratis spins`);
     messages.push(`&#128520; Duivelswielen: ${delen.length ? delen.join(' en ') : 'helaas niks'}!`);
   }
 
-  // Alle gratis spins gebruikt: laat zien wat het in totaal opleverde
-  if (usingFreeSpin && freeSpinsRemaining === 0) {
-    messages.push(`Bonus voorbij: totaal +€${freeSpinWinTotal}`);
+  // Alle gratis spins gebruikt: het hele potje x de demonen wordt nu uitbetaald
+  if (usingFreeSpin && freeSpinsRemaining === 0 && fsActive) {
+    const m = fsMultiplier();
+    const uitbetaling = Math.round(fsPot * m);
+    if (uitbetaling > 0) addBalance(uitbetaling);
+    const demonTekst = fsDemons > 0 ? ` (${fsDemons} demon${fsDemons > 1 ? 'en' : ''})` : '';
+    messages.push(`Bonus voorbij: potje €${fsPot} x${m}${demonTekst} = €${uitbetaling}`);
+    fsActive = false;
+    fsPot = 0;
+    fsDemons = 0;
   }
 
   const status = document.getElementById('status');
@@ -742,8 +829,79 @@ function finishSpin(usingFreeSpin, uitkomst, bonus) {
   }
 
   spinning = false;
-  document.getElementById('spinBtn').disabled = false;
+  setSpinButtonState();
   updateUI();
+  autoNext();
+}
+
+/* ========================================================================
+   AUTOPLAY
+   Draait automatisch het gekozen aantal betaalde spins. Gratis spins en de
+   duivelswielen worden ook automatisch afgehandeld en tellen niet mee.
+   ======================================================================== */
+
+function setSpinButtonState() {
+  document.getElementById('spinBtn').disabled = spinning || autoActive;
+}
+
+function updateAutoUI() {
+  const btn = document.getElementById('autoBtn');
+  const sel = document.getElementById('autoCount');
+  if (autoActive) {
+    btn.textContent = 'STOP (' + autoRemaining + ')';
+    btn.classList.add('active');
+    sel.disabled = true;
+  } else {
+    btn.textContent = 'AUTO';
+    btn.classList.remove('active');
+    sel.disabled = false;
+  }
+}
+
+function toggleAuto() {
+  if (autoActive) {
+    stopAuto();
+    return;
+  }
+  if (spinning) return;
+  autoRemaining = parseInt(document.getElementById('autoCount').value, 10) || 10;
+  autoActive = true;
+  setSpinButtonState();
+  updateAutoUI();
+  autoNext();
+}
+
+function stopAuto(bericht) {
+  autoActive = false;
+  setSpinButtonState();
+  updateAutoUI();
+  if (bericht) {
+    const status = document.getElementById('status');
+    status.innerHTML = status.innerHTML ? status.innerHTML + ' &mdash; ' + bericht : bericht;
+  }
+}
+
+function autoNext() {
+  if (!autoActive) return;
+  setTimeout(function () {
+    if (!autoActive || spinning) return;
+
+    if (freeSpinsRemaining > 0) {          // gratis spins kosten niks en tellen niet mee
+      spin();
+      return;
+    }
+    if (autoRemaining <= 0) {
+      stopAuto('Autoplay klaar.');
+      return;
+    }
+    if (getBalance() < bet) {
+      stopAuto('Autoplay gestopt: niet genoeg saldo.');
+      return;
+    }
+    autoRemaining--;
+    updateAutoUI();
+    spin();
+  }, 900);
 }
 
 function highlightWinningLines(lineIndexes) {
@@ -763,6 +921,7 @@ function highlightWinningLines(lineIndexes) {
 
 function wielKleur(vak, index) {
   if (vak.spins) return '#1aa7d8';
+  if (vak.m >= 100) return '#7b2cbf';
   if (vak.m >= 25) return '#d4a017';
   if (vak.m >= 10) return '#e07b00';
   return index % 2 === 0 ? '#8a1a0a' : '#b3300f';
@@ -889,8 +1048,22 @@ function runBonus(devils, klaar) {
         overlay.classList.remove('show');
         klaar({ prize: prize, spins: spins });
       };
+
+      // Autoplay: vanzelf doorgaan
+      if (autoActive) {
+        setTimeout(function () {
+          if (autoActive && !knop.disabled && overlay.classList.contains('show')) knop.onclick();
+        }, 2800);
+      }
     }, langste * 1000 + 500);
   };
+
+  // Autoplay: de wielen starten vanzelf
+  if (autoActive) {
+    setTimeout(function () {
+      if (autoActive && !knop.disabled && overlay.classList.contains('show')) knop.onclick();
+    }, 1500);
+  }
 }
 
 /* ========================================================================
@@ -920,7 +1093,7 @@ function buildPaytable() {
     row.className = 'pt-row';
     row.innerHTML = `
       <div class="pt-sym">${key}</div>
-      <div class="pt-vals"><b>${s.name}</b><br>3 op een rij: ${formatMultiplier(s.pay[3])} &nbsp; 4: ${formatMultiplier(s.pay[4])} &nbsp; 5: ${formatMultiplier(s.pay[5])}</div>
+      <div class="pt-vals"><b>${s.name}</b><br>3 op een rij: ${formatMultiplier(s.pay[3])} &nbsp; 4: ${formatMultiplier(s.pay[4])} &nbsp; 5: ${formatMultiplier(s.pay[5])}${key === DEMON_SYMBOL ? '<br><span style="color:#ffd24d">Gratis spins: elke demon = x' + DEMON_MULTIPLIER + ' op je potje</span>' : ''}</div>
     `;
     el.appendChild(row);
   });
@@ -942,7 +1115,8 @@ function buildPaytable() {
     `Uitbetaling = veelvoud van je inzet per winlijn, van links naar rechts.<br>` +
     `&#128305; is een joker en vervangt alle symbolen behalve &#128520;.<br>` +
     `<b>Duivelswielen:</b> elk wiel geeft ${prijzen} je inzet, of &#128520; = ${FREE_SPINS_PER_DEVIL} gratis spins.<br>` +
-    `Tijdens gratis spins is de winst op de walsen x${FREE_SPIN_MULTIPLIER}. ` +
+    `<b>Gratis spins:</b> alles wat je dan wint gaat eerst in een potje. Elke &#128121; die tijdens de gratis spins landt telt x${DEMON_MULTIPLIER} ` +
+    `(1 demon = x${DEMON_MULTIPLIER}, 3 demonen = x${DEMON_MULTIPLIER * 3}). Na de laatste gratis spin wordt het hele potje met die vermenigvuldiger uitbetaald.<br>` +
     `Komen er in de bonus weer ${BONUS_MIN_COUNT} duivels, dan draaien de wielen opnieuw.`;
   el.appendChild(note);
 }
