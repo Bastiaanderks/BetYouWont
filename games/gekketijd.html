@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gekke Tijd - BetYouWon't</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100vh; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e8f1f8;
+    text-align: center;
+    padding: 20px 10px 70px;
+    background: #0f212e;
+  }
+  .topbar { text-align: left; margin-bottom: 8px; }
+  .back-btn {
+    display: inline-block;
+    color: #fff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 16px;
+    background: #213743;
+    border: 1px solid #2f4553;
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .back-btn:hover { background: #2f4553; border-color: #00e701; }
+
+  h1 {
+    margin: 4px 0 2px;
+    font-size: 44px;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #ff4d6d, #ffd24d, #5aa9ff, #b57cff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255,120,150,0.35));
+  }
+  .subtitle { color: #8fa7b8; margin-bottom: 14px; }
+
+  /* ----- Topslot ----- */
+  #topslot {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(180deg, #1c2f3d, #142330);
+    border: 2px solid #35506a;
+    border-radius: 14px;
+    padding: 8px 20px;
+    margin-bottom: 14px;
+    min-width: 260px;
+    justify-content: center;
+  }
+  #topslot .ts-label { font-size: 12px; letter-spacing: 2px; color: #8fa7b8; text-transform: uppercase; }
+  #topslot .ts-spot { font-size: 26px; font-weight: 800; min-width: 130px; }
+  #topslot .ts-mult { font-size: 30px; font-weight: 900; color: #ffd24d; min-width: 70px; text-shadow: 0 0 10px rgba(255,210,77,0.5); }
+  #topslot.klaar { border-color: #ffd24d; box-shadow: 0 0 22px rgba(255,210,77,0.35); }
+
+  /* ----- Het grote rad ----- */
+  #wielWrap {
+    position: relative;
+    width: min(460px, 92vw);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 14px;
+  }
+  #wielCanvas { width: 100%; height: 100%; display: block; }
+  #wielPijl {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 34px solid #ffffff;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.7));
+    z-index: 3;
+  }
+  #hub {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 27%; height: 27%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    line-height: 1.1;
+    font-weight: 900;
+    font-size: clamp(14px, 3.4vw, 22px);
+    color: #fff;
+    z-index: 2;
+    pointer-events: none;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  }
+  #hub small { font-size: 0.55em; font-weight: 600; opacity: 0.85; }
+
+  /* ----- Inzetvakken ----- */
+  #spots {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 720px;
+    margin: 0 auto 14px;
+  }
+  .spot {
+    position: relative;
+    min-height: 96px;
+    border-radius: 14px;
+    border: 3px solid var(--kleur);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.25)), #15222d;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transition: transform 0.12s, box-shadow 0.2s, background 0.2s;
+  }
+  .spot:hover { transform: translateY(-2px); box-shadow: 0 0 16px var(--kleur); }
+  .spot:disabled { cursor: not-allowed; opacity: 0.8; transform: none; box-shadow: none; }
+  .spot .sp-groot { font-size: 38px; font-weight: 900; color: var(--kleur); line-height: 1; }
+  .spot .sp-icoon { font-size: 34px; line-height: 1; }
+  .spot .sp-naam { font-size: 14px; font-weight: 700; color: var(--kleur); }
+  .spot .sp-uitbet { font-size: 12px; color: #8fa7b8; }
+  .spot .sp-inzet {
+    position: absolute;
+    right: -8px; bottom: -10px;
+    min-width: 36px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #ffd24d;
+    color: #2b2200;
+    font-weight: 900;
+    font-size: 14px;
+    border: 2px solid #fff3b0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .spot.heeft-inzet .sp-inzet { display: block; }
+  .spot .sp-top {
+    position: absolute;
+    left: -6px; top: -10px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background: #ff4d6d;
+    color: #fff;
+    font-weight: 900;
+    font-size: 14px;
+    border: 2px solid #fff;
+    display: none;
+  }
+  .spot.heeft-top .sp-top { display: block; animation: pulse 0.9s ease-in-out infinite; }
+  .spot.wint { background: var(--kleur); }
+  .spot.wint .sp-groot, .spot.wint .sp-naam { color: #101010; }
+  .spot.wint .sp-uitbet { color: #222; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+  /* ----- Fiches en knoppen ----- */
+  #chips { display: flex; justify-content: center; gap: 12px; margin: 8px 0 12px; flex-wrap: wrap; }
+  .chip {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    border: 4px dashed rgba(255,255,255,0.7);
+    font-weight: 900;
+    font-size: 16px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 3px rgba(0,0,0,0.25), 0 3px 6px rgba(0,0,0,0.5);
+    transition: transform 0.12s;
+  }
+  .chip:hover { transform: translateY(-3px); }
+  .chip.actief { transform: translateY(-5px) scale(1.12); outline: 3px solid #ffd24d; }
+  .chip[data-w="5"]   { background: #c0392b; }
+  .chip[data-w="10"]  { background: #2471a3; }
+  .chip[data-w="25"]  { background: #1e8449; }
+  .chip[data-w="100"] { background: #6c3483; }
+  .chip[data-w="500"] { background: #b9770e; }
+
+  #controls { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .infobox {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid #2f4553;
+    border-radius: 10px;
+    padding: 8px 16px;
+    min-width: 110px;
+  }
+  .infobox .lbl { font-size: 11px; letter-spacing: 1px; color: #8fa7b8; text-transform: uppercase; }
+  .infobox .val { font-size: 20px; font-weight: 800; color: #00e701; }
+  .knop {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid #2f4553;
+    background: #213743;
+    color: #fff;
+    cursor: pointer;
+  }
+  .knop:hover:not(:disabled) { background: #2f4553; }
+  .knop:disabled { opacity: 0.45; cursor: not-allowed; }
+  #spinBtn {
+    font-size: 20px;
+    padding: 14px 40px;
+    border-radius: 50px;
+    border: 3px solid #ffd24d;
+    background: linear-gradient(180deg, #ff5c7a, #c0152f);
+    letter-spacing: 2px;
+    box-shadow: 0 4px 0 #7a0a1c, 0 6px 14px rgba(0,0,0,0.5);
+  }
+  #spinBtn:hover:not(:disabled) { background: linear-gradient(180deg, #ff6f8a, #d11a36); }
+  #spinBtn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #7a0a1c; }
+
+  #bericht { min-height: 34px; font-size: 20px; font-weight: 700; color: #ffd24d; margin: 10px 0; }
+  #bericht.winst { color: #00e701; text-shadow: 0 0 10px rgba(0,231,1,0.5); }
+  #historie { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; min-height: 34px; margin-bottom: 14px; }
+  .hist {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+  #regelsKnop { background: none; border: 1px solid #2f4553; color: #8fa7b8; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+  #regels {
+    display: none;
+    max-width: 640px;
+    margin: 12px auto 0;
+    text-align: left;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid #2f4553;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #b6c8d6;
+  }
+  #regels.show { display: block; }
+  #regels b { color: #fff; }
+
+  /* ----- Bonus-scherm ----- */
+  #bonusOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: radial-gradient(circle at 50% 25%, #2a1747, #0a0612 80%);
+    overflow: auto;
+    padding: 18px 12px 40px;
+  }
+  #bonusOverlay.show { display: block; }
+  .bonus-box { max-width: 820px; margin: 0 auto; text-align: center; }
+  #bonusTitel {
+    margin: 4px 0 0;
+    font-size: 36px;
+    letter-spacing: 3px;
+    color: #ffd24d;
+    text-shadow: 0 0 16px rgba(255,210,77,0.6);
+  }
+  #bonusTop {
+    display: none;
+    margin: 6px auto 0;
+    width: fit-content;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: #ff4d6d;
+    color: #fff;
+    font-weight: 900;
+    border: 2px solid #fff;
+  }
+  #bonusMsg { min-height: 30px; margin: 10px 0; font-size: 19px; color: #d7c8f0; }
+  #bonusBody { margin: 10px auto; }
+  #bonusFooter { margin-top: 14px; min-height: 52px; }
+  #bonusKnop {
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 800;
+    padding: 12px 38px;
+    border-radius: 50px;
+    border: 3px solid #ffd24d;
+    background: linear-gradient(180deg, #ff5c7a, #c0152f);
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+  .groot-res { font-size: 28px; font-weight: 900; color: #00e701; text-shadow: 0 0 14px rgba(0,231,1,0.5); margin-top: 8px; }
+
+  /* Muntworp */
+  .munt-rij { display: flex; align-items: center; justify-content: center; gap: 22px; flex-wrap: wrap; }
+  .munt-kant {
+    width: 130px;
+    padding: 14px 8px;
+    border-radius: 14px;
+    font-weight: 800;
+    border: 3px solid transparent;
+    opacity: 0.85;
+    transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+  }
+  .munt-kant b { display: block; font-size: 38px; }
+  .munt-kant.rood { background: #7d1a22; border-color: #ff6b6b; }
+  .munt-kant.blauw { background: #163a7a; border-color: #6fa8ff; }
+  .munt-kant.wint { opacity: 1; transform: scale(1.15); box-shadow: 0 0 28px #ffd24d; border-color: #ffd24d; }
+  .munt-scene { perspective: 900px; width: 170px; height: 170px; }
+  .munt { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 4s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .munt-vlak {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 46px; font-weight: 900; color: #fff;
+    border: 8px solid #ffd24d;
+    box-shadow: inset 0 0 22px rgba(0,0,0,0.45);
+  }
+  .munt-vlak.voor { background: radial-gradient(circle at 35% 30%, #ff8a8a, #b3121d); }
+  .munt-vlak.achter { background: radial-gradient(circle at 35% 30%, #86b9ff, #1a45c4); transform: rotateY(180deg); }
+
+  /* Geldjacht */
+  .gj-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 540px; margin: 0 auto; }
+  .gj-tegel {
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    border: 2px solid #5b3b8f;
+    background: linear-gradient(180deg, #3a2260, #22123f);
+    color: #fff;
+    font-weight: 900;
+    font-size: clamp(14px, 3.4vw, 22px);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+    user-select: none;
+  }
+  .gj-tegel.open { background: var(--k); color: #101010; border-color: #fff; }
+  .gj-tegel.kies { cursor: pointer; font-size: clamp(18px, 4vw, 28px); }
+  .gj-tegel.kies:hover { transform: scale(1.12); box-shadow: 0 0 16px #ffd24d; }
+  .gj-tegel.schud { animation: schud 0.18s linear infinite; }
+  .gj-tegel.gekozen { transform: scale(1.18); box-shadow: 0 0 26px #ffd24d; border-color: #ffd24d; z-index: 2; position: relative; }
+  .gj-tegel.vaag { opacity: 0.45; }
+  @keyframes schud { 0% { transform: translate(0,0) rotate(0); } 25% { transform: translate(3px,-3px) rotate(4deg); } 50% { transform: translate(-3px,3px) rotate(-4deg); } 75% { transform: translate(3px,3px) rotate(3deg); } 100% { transform: translate(0,0) rotate(0); } }
+
+  /* Pachinko en Gekke Tijd (canvas) */
+  #pkCanvas, #gtCanvas { max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 14px; }
+  .flap-keuze { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .flap-knop {
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 17px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 3px solid #fff;
+    color: #fff;
+    cursor: pointer;
+  }
+  .flap-knop:hover { transform: scale(1.06); }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 32px; }
+    .spot { min-height: 84px; }
+    .spot .sp-groot { font-size: 30px; }
+    .spot .sp-icoon { font-size: 26px; }
+    .spot .sp-naam { font-size: 11px; }
+    #topslot { min-width: 0; gap: 8px; padding: 8px 12px; }
+    #topslot .ts-spot { font-size: 18px; min-width: 80px; }
+    #topslot .ts-mult { font-size: 22px; min-width: 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="../games.html">&larr; Terug naar games</a>
+</div>
+
+<h1>GEKKE TIJD</h1>
+<div class="subtitle">Zet in, draai het grote rad en speel de bonusspellen!</div>
+
+<div id="topslot">
+  <span class="ts-label">Topslot</span>
+  <span class="ts-spot" id="tsSpot">?</span>
+  <span class="ts-mult" id="tsMult">x?</span>
+</div>
+
+<div id="wielWrap">
+  <div id="wielPijl"></div>
+  <canvas id="wielCanvas"></canvas>
+  <div id="hub"><span>GEKKE</span><span>TIJD</span></div>
+</div>
+
+<div id="spots"></div>
+
+<div id="chips"></div>
+
+<div id="controls">
+  <div class="infobox"><div class="lbl">Saldo</div><div class="val" id="saldoVal">€1000</div></div>
+  <div class="infobox"><div class="lbl">Totale inzet</div><div class="val" id="totaalVal">€0</div></div>
+  <button class="knop" id="wisBtn">Wis inzet</button>
+  <button class="knop" id="herhaalBtn">Herhaal</button>
+  <button class="knop" id="dubbelBtn">Inzet x2</button>
+  <button class="knop" id="spinBtn">DRAAI HET RAD</button>
+</div>
+
+<div id="bericht">Kies een fiche en klik op de vakken om in te zetten.</div>
+<div id="historie"></div>
+
+<button id="regelsKnop">Spelregels tonen</button>
+<div id="regels">
+  <b>Zo werkt het:</b> kies een fiche, klik op een of meer vakken en draai het rad. Valt het rad op een vak waar jij op hebt ingezet, dan win je.<br><br>
+  <b>1, 2, 5 en 10</b> betalen 1:1, 2:1, 5:1 en 10:1. Je krijgt je inzet terug plus je winst.<br>
+  <b>Muntworp</b>: een munt met een rode en een blauwe kant, elk met een vermenigvuldiger. Rood of blauw wint.<br>
+  <b>Geldjacht</b>: alle vakjes tonen even hun vermenigvuldiger, worden dan geschud en jij kiest er een.<br>
+  <b>Pachinko</b>: een bal valt op een vermenigvuldiger. Op <b>DUBBEL</b> worden alle waarden x2 en valt er nog een bal.<br>
+  <b>Gekke Tijd</b>: kies een flapper (rood, groen of blauw). Het bonuswiel draait en jouw flapper bepaalt je winst. Bij x2 of x3 worden alle waarden groter en draait het wiel opnieuw.<br><br>
+  <b>Topslot:</b> voor elke ronde krijgt een vak een extra vermenigvuldiger. Valt het rad op dat vak, dan krijg je die vermenigvuldiger bovenop je winst.
+</div>
+
+<!-- Bonus-scherm -->
+<div id="bonusOverlay">
+  <div class="bonus-box">
+    <h2 id="bonusTitel"></h2>
+    <div id="bonusTop"></div>
+    <div id="bonusMsg"></div>
+    <div id="bonusBody"></div>
+    <div id="bonusFooter"><button id="bonusKnop" style="display:none">DOORGAAN</button></div>
+  </div>
+</div>
+
+<script src="../balance.js"></script>
+<script>
+/* ========================================================================
+   ENGINE (zonder scherm): wiel, topslot, bonusspellen en uitbetalingen
+   Alle vermenigvuldigers zijn "x:1" - je wint inzet x vermenigvuldiger
+   en je krijgt je inzet terug.
+   ======================================================================== */
+
+const SPOT_ORDER = ['1', '2', '5', '10', 'CF', 'PK', 'CH', 'CT'];
+
+// Hoeveel vakjes van elk soort er op het grote rad zitten (samen 54)
+const SEGMENT_COUNTS = { '1': 21, '2': 13, '5': 7, '10': 4, CF: 4, PK: 2, CH: 2, CT: 1 };
+
+const SPOT_INFO = {
+  '1':  { naam: '1',          kleur: '#f6c445', tekst: '#2b2200', getal: 1 },
+  '2':  { naam: '2',          kleur: '#58d68d', tekst: '#06260f', getal: 2 },
+  '5':  { naam: '5',          kleur: '#ff7eb6', tekst: '#33001a', getal: 5 },
+  '10': { naam: '10',         kleur: '#5aa9ff', tekst: '#001a33', getal: 10 },
+  CF:   { naam: 'Muntworp',   kleur: '#b57cff', tekst: '#1d0040', icoon: '🪙' },
+  PK:   { naam: 'Pachinko',   kleur: '#ff8a3d', tekst: '#331500', icoon: '🎱' },
+  CH:   { naam: 'Geldjacht',  kleur: '#2ee6d6', tekst: '#00302c', icoon: '🎯' },
+  CT:   { naam: 'Gekke Tijd', kleur: '#ff4d6d', tekst: '#ffffff', icoon: '🤪' },
+};
+
+// ----- Topslot: voor elke ronde een vak met een vermenigvuldiger -----
+const TOP_MULTS = [[2, 60], [3, 25], [4, 10], [5, 8], [7, 4], [10, 3], [15, 1.5], [20, 0.8], [25, 0.4], [50, 0.2]];
+const TOP_SPOT_WEIGHTS = { '1': 17.9, '2': 19.2, '5': 10.8, '10': 7.4, CF: 13.4, PK: 8.9, CH: 8.9, CT: 13.4 };
+
+// ----- Muntworp: rood en blauw krijgen elk een vermenigvuldiger -----
+const COIN_WAARDEN = [[2, 18], [3, 17], [4, 15], [5, 14], [7, 11], [10, 10], [15, 8], [20, 6], [50, 4], [100, 1]];
+
+// ----- Geldjacht: 30 vakjes, na het schudden kies je er een -----
+const CASH_HUNT_TEGELS = [
+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+  8, 8, 8, 8, 8,
+  10, 10, 10, 10,
+  15, 15, 15,
+  20, 20,
+  25,
+  50,
+  100,
+  200,
+];
+
+// ----- Pachinko: 16 vakken, 'D' = dubbel (alles x2 en nog een bal) -----
+const PACHINKO_VAKKEN = [10, 5, 'D', 20, 10, 15, 5, 25, 100, 10, 5, 'D', 10, 10, 10, 5];
+
+// ----- Gekke Tijd: 24 vakken op het bonuswiel, 'x2' en 'x3' verhogen alles -----
+const GT_SEGMENTEN = [
+  5, 10, 'x2', 5, 10, 20, 5, 15, 'x3', 10, 50, 5,
+  10, 25, 'x2', 10, 100, 15, 5, 'x2', 20, 50, 10, 200,
+];
+
+function gewogen(lijst) {
+  let totaal = 0;
+  lijst.forEach(([, w]) => { totaal += w; });
+  let r = Math.random() * totaal;
+  for (const [waarde, w] of lijst) {
+    r -= w;
+    if (r <= 0) return waarde;
+  }
+  return lijst[lijst.length - 1][0];
+}
+
+function schud(lijst) {
+  const a = lijst.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Het grote rad: 54 vakjes, bonussen zo gelijk mogelijk verspreid
+function bouwWiel() {
+  const totaal = 54;
+  const bonusVolgorde = ['CF', 'PK', 'CH', 'CF', 'CT', 'CF', 'CH', 'PK', 'CF'];
+  const wiel = new Array(totaal).fill(null);
+  bonusVolgorde.forEach((b, k) => { wiel[3 + k * 6] = b; });
+
+  const cijfers = ['1', '2', '5', '10'];
+  const geplaatst = { '1': 0, '2': 0, '5': 0, '10': 0 };
+  let n = 0;
+  for (let i = 0; i < totaal; i++) {
+    if (wiel[i]) continue;
+    n++;
+    let beste = null, besteTekort = -Infinity;
+    cijfers.forEach(c => {
+      const tekort = SEGMENT_COUNTS[c] * n / 45 - geplaatst[c];
+      if (tekort > besteTekort) { besteTekort = tekort; beste = c; }
+    });
+    wiel[i] = beste;
+    geplaatst[beste]++;
+  }
+  return wiel;
+}
+
+function trekTopslot() {
+  const spot = gewogen(SPOT_ORDER.map(s => [s, TOP_SPOT_WEIGHTS[s]]));
+  const mult = gewogen(TOP_MULTS);
+  return { spot, mult };
+}
+
+function speelMuntworp() {
+  const rood = gewogen(COIN_WAARDEN);
+  const blauw = gewogen(COIN_WAARDEN);
+  const uitkomst = Math.random() < 0.5 ? 'rood' : 'blauw';
+  return { rood, blauw, uitkomst, mult: uitkomst === 'rood' ? rood : blauw };
+}
+
+function maakGeldjacht() {
+  return schud(CASH_HUNT_TEGELS);
+}
+
+function speelPachinko() {
+  let factor = 1;
+  const drops = [];
+  for (;;) {
+    let idx = Math.floor(Math.random() * PACHINKO_VAKKEN.length);
+    // veiligheid: na 6 keer dubbel valt de bal zeker op een getal
+    while (drops.length >= 6 && PACHINKO_VAKKEN[idx] === 'D') {
+      idx = Math.floor(Math.random() * PACHINKO_VAKKEN.length);
+    }
+    const v = PACHINKO_VAKKEN[idx];
+    drops.push({ index: idx, waarde: v, factor: factor });
+    if (v === 'D') { factor *= 2; continue; }
+    return { drops, mult: v * factor };
+  }
+}
+
+function speelGekkeTijd() {
+  let factor = 1;
+  const rondes = [];
+  for (;;) {
+    let idx = Math.floor(Math.random() * GT_SEGMENTEN.length);
+    while (rondes.length >= 5 && typeof GT_SEGMENTEN[idx] === 'string') {
+      idx = Math.floor(Math.random() * GT_SEGMENTEN.length);
+    }
+    const v = GT_SEGMENTEN[idx];
+    rondes.push({ index: idx, waarde: v, factor: factor });
+    if (v === 'x2') { factor *= 2; continue; }
+    if (v === 'x3') { factor *= 3; continue; }
+    return { rondes, mult: v * factor };
+  }
+}
+
+// Totaal dat je terugkrijgt (inzet + winst) voor 1 inzetvak, 0 als het vak niet viel
+function berekenUitbetaling(spot, inzet, landing, topslot, bonusMult) {
+  if (spot !== landing) return 0;
+  const tm = topslot && topslot.spot === spot ? topslot.mult : 1;
+  const basis = SPOT_INFO[spot].getal !== undefined ? SPOT_INFO[spot].getal : bonusMult;
+  return Math.round(inzet + inzet * basis * tm);
+}
+
+
+/* ========================================================================
+   SCHERM
+   ======================================================================== */
+
+const WIEL = bouwWiel();
+const AANTAL = WIEL.length;
+const SEG = Math.PI * 2 / AANTAL;
+const FICHES = [5, 10, 25, 100, 500];
+const MAX_PER_VAK = 5000;
+
+// ----- Saldo (balance.js, anders een eigen saldo) -----
+let eigenSaldo = 1000;
+function heeftBalanceJs() {
+  return typeof getBalance === 'function' && typeof addBalance === 'function' && typeof subtractBalance === 'function';
+}
+function saldo() { return heeftBalanceJs() ? getBalance() : eigenSaldo; }
+function saldoPlus(n) { if (n <= 0) return; if (heeftBalanceJs()) addBalance(n); else eigenSaldo += n; toonSaldo(); }
+function saldoMin(n) { if (n <= 0) return; if (heeftBalanceJs()) subtractBalance(n); else eigenSaldo -= n; toonSaldo(); }
+function toonSaldo() { document.getElementById('saldoVal').textContent = '€' + saldo(); }
+
+const el = id => document.getElementById(id);
+const wacht = ms => new Promise(r => setTimeout(r, ms));
+const euro = n => '€' + Math.round(n);
+
+let fiche = 5;
+let inzetten = {};
+let vorigeInzetten = {};
+let bezig = false;
+let topslot = null;
+const historie = [];
+
+// ----- Inzetvakken en fiches bouwen -----
+function bouwVakken() {
+  const rooster = el('spots');
+  rooster.innerHTML = '';
+  SPOT_ORDER.forEach(spot => {
+    const info = SPOT_INFO[spot];
+    const knop = document.createElement('button');
+    knop.className = 'spot';
+    knop.dataset.spot = spot;
+    knop.style.setProperty('--kleur', info.kleur);
+
+    if (info.getal !== undefined) {
+      knop.innerHTML = `<span class="sp-groot">${info.naam}</span><span class="sp-uitbet">pakt ${info.getal}:1</span>`;
+    } else {
+      knop.innerHTML = `<span class="sp-icoon">${info.icoon}</span><span class="sp-naam">${info.naam.toUpperCase()}</span><span class="sp-uitbet">bonusspel</span>`;
+    }
+    knop.innerHTML += `<span class="sp-top"></span><span class="sp-inzet"></span>`;
+
+    knop.addEventListener('click', () => legInzet(spot));
+    knop.addEventListener('contextmenu', e => { e.preventDefault(); haalInzetWeg(spot); });
+    rooster.appendChild(knop);
+  });
+
+  const fichesDiv = el('chips');
+  fichesDiv.innerHTML = '';
+  FICHES.forEach(w => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (w === fiche ? ' actief' : '');
+    b.dataset.w = w;
+    b.textContent = w;
+    b.addEventListener('click', () => {
+      fiche = w;
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('actief', c === b));
+    });
+    fichesDiv.appendChild(b);
+  });
+}
+
+function totaleInzet() {
+  return Object.values(inzetten).reduce((a, b) => a + b, 0);
+}
+
+function ververInzetten() {
+  document.querySelectorAll('.spot').forEach(knop => {
+    const bedrag = inzetten[knop.dataset.spot] || 0;
+    knop.classList.toggle('heeft-inzet', bedrag > 0);
+    knop.querySelector('.sp-inzet').textContent = bedrag;
+  });
+  el('totaalVal').textContent = euro(totaleInzet());
+}
+
+function legInzet(spot) {
+  if (bezig) return;
+  if (totaleInzet() + fiche > saldo()) { toonBericht('Niet genoeg saldo voor deze inzet.'); return; }
+  if ((inzetten[spot] || 0) + fiche > MAX_PER_VAK) { toonBericht('Maximale inzet per vak is ' + euro(MAX_PER_VAK) + '.'); return; }
+  inzetten[spot] = (inzetten[spot] || 0) + fiche;
+  toonBericht('');
+  ververInzetten();
+}
+
+function haalInzetWeg(spot) {
+  if (bezig) return;
+  delete inzetten[spot];
+  ververInzetten();
+}
+
+function toonBericht(tekst, winst) {
+  const b = el('bericht');
+  b.textContent = tekst;
+  b.className = winst ? 'winst' : '';
+}
+
+function zetKnoppen(aan) {
+  ['spinBtn', 'wisBtn', 'herhaalBtn', 'dubbelBtn'].forEach(id => { el(id).disabled = !aan; });
+  document.querySelectorAll('.spot').forEach(k => { k.disabled = !aan; });
+}
+
+el('wisBtn').addEventListener('click', () => { if (!bezig) { inzetten = {}; ververInzetten(); } });
+el('herhaalBtn').addEventListener('click', () => {
+  if (bezig) return;
+  const totaal = Object.values(vorigeInzetten).reduce((a, b) => a + b, 0);
+  if (totaal === 0) { toonBericht('Er is nog geen vorige inzet.'); return; }
+  if (totaal > saldo()) { toonBericht('Niet genoeg saldo voor de vorige inzet.'); return; }
+  inzetten = Object.assign({}, vorigeInzetten);
+  toonBericht('');
+  ververInzetten();
+});
+el('dubbelBtn').addEventListener('click', () => {
+  if (bezig || totaleInzet() === 0) return;
+  if (totaleInzet() * 2 > saldo()) { toonBericht('Niet genoeg saldo om te verdubbelen.'); return; }
+  for (const k in inzetten) inzetten[k] = Math.min(MAX_PER_VAK, inzetten[k] * 2);
+  ververInzetten();
+});
+el('regelsKnop').addEventListener('click', () => {
+  const r = el('regels');
+  r.classList.toggle('show');
+  el('regelsKnop').textContent = r.classList.contains('show') ? 'Spelregels verbergen' : 'Spelregels tonen';
+});
+
+// ----- Het grote rad tekenen -----
+const wielCanvas = el('wielCanvas');
+const wctx = wielCanvas.getContext('2d');
+const WIEL_PX = 460;
+(function schaalCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  wielCanvas.width = WIEL_PX * dpr;
+  wielCanvas.height = WIEL_PX * dpr;
+  wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+})();
+
+let wielRot = 0;
+let winnendIndex = -1;
+
+function tekenGrootWiel() {
+  const c = WIEL_PX / 2;
+  const R = c - 16;
+  wctx.clearRect(0, 0, WIEL_PX, WIEL_PX);
+
+  // buitenste gouden rand met lampjes
+  wctx.beginPath();
+  wctx.arc(c, c, R + 12, 0, Math.PI * 2);
+  wctx.fillStyle = '#c9971f';
+  wctx.fill();
+  wctx.beginPath();
+  wctx.arc(c, c, R + 5, 0, Math.PI * 2);
+  wctx.fillStyle = '#1a1426';
+  wctx.fill();
+  for (let i = 0; i < AANTAL; i++) {
+    const a = -Math.PI / 2 + i * SEG + wielRot;
+    wctx.beginPath();
+    wctx.arc(c + Math.cos(a) * (R + 8.5), c + Math.sin(a) * (R + 8.5), 2.2, 0, Math.PI * 2);
+    wctx.fillStyle = '#fff3b0';
+    wctx.fill();
+  }
+
+  for (let i = 0; i < AANTAL; i++) {
+    const spot = WIEL[i];
+    const info = SPOT_INFO[spot];
+    const start = -Math.PI / 2 + i * SEG + wielRot;
+    const eind = start + SEG;
+    const midden = start + SEG / 2;
+
+    wctx.beginPath();
+    wctx.moveTo(c, c);
+    wctx.arc(c, c, R, start, eind);
+    wctx.closePath();
+    wctx.fillStyle = info.kleur;
+    wctx.fill();
+    wctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    wctx.lineWidth = 1.5;
+    wctx.stroke();
+
+    // cijfer of icoon staat rechtop in zijn eigen vakje (onderste helft 180 graden gedraaid)
+    const onderkant = Math.sin(midden) > 0;
+    const afstand = R - 22;
+    wctx.save();
+    wctx.translate(c, c);
+    wctx.rotate(midden + Math.PI / 2 + (onderkant ? Math.PI : 0));
+    wctx.textAlign = 'center';
+    wctx.textBaseline = 'middle';
+    if (info.getal !== undefined) {
+      wctx.fillStyle = info.tekst;
+      wctx.font = 'bold 21px "Segoe UI", Arial, sans-serif';
+      wctx.fillText(info.naam, 0, onderkant ? afstand : -afstand);
+    } else {
+      wctx.font = '24px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+      wctx.fillText(info.icoon, 0, onderkant ? afstand : -afstand);
+    }
+    wctx.restore();
+  }
+
+  // gouden rand om het winnende vak
+  if (winnendIndex >= 0) {
+    const start = -Math.PI / 2 + winnendIndex * SEG + wielRot;
+    wctx.beginPath();
+    wctx.moveTo(c, c);
+    wctx.arc(c, c, R, start, start + SEG);
+    wctx.closePath();
+    wctx.strokeStyle = '#ffffff';
+    wctx.lineWidth = 4;
+    wctx.stroke();
+  }
+
+  // middenschijf
+  wctx.beginPath();
+  wctx.arc(c, c, R * 0.3, 0, Math.PI * 2);
+  const g = wctx.createRadialGradient(c, c - 10, 5, c, c, R * 0.3);
+  g.addColorStop(0, '#3b2a66');
+  g.addColorStop(1, '#150e29');
+  wctx.fillStyle = g;
+  wctx.fill();
+  wctx.strokeStyle = '#ffd24d';
+  wctx.lineWidth = 4;
+  wctx.stroke();
+}
+
+function draaiGrootWiel(index) {
+  return new Promise(resolve => {
+    const start = wielRot;
+    // het midden van vak 'index' eindigt precies bovenaan, bij de pijl
+    const doel = Math.PI * 2 * 6 - (index + 0.5) * SEG;
+    const duur = 7000;
+    const t0 = performance.now();
+    function stap(nu) {
+      const t = Math.max(0, Math.min((nu - t0) / duur, 1));
+      const e = 1 - Math.pow(1 - t, 4);
+      wielRot = start + (doel - start) * e;
+      tekenGrootWiel();
+      if (t < 1) {
+        requestAnimationFrame(stap);
+      } else {
+        wielRot = doel % (Math.PI * 2);
+        winnendIndex = index;
+        tekenGrootWiel();
+        resolve();
+      }
+    }
+    requestAnimationFrame(stap);
+  });
+}
+
+function trekIndex() { return Math.floor(Math.random() * AANTAL); }
+
+function zetHub(regel1, regel2, kleur) {
+  const h = el('hub');
+  h.innerHTML = `<span>${regel1}</span>` + (regel2 ? `<small>${regel2}</small>` : '');
+  h.style.color = kleur || '#fff';
+}
+
+// ----- Topslot -----
+function spotLabel(spot) {
+  const i = SPOT_INFO[spot];
+  return i.getal !== undefined ? i.naam : `${i.icoon} ${i.naam}`;
+}
+
+async function animeerTopslot(top) {
+  const box = el('topslot');
+  box.classList.remove('klaar');
+  document.querySelectorAll('.spot').forEach(k => k.classList.remove('heeft-top'));
+  const t0 = performance.now();
+  while (performance.now() - t0 < 1800) {
+    const s = SPOT_ORDER[Math.floor(Math.random() * SPOT_ORDER.length)];
+    const m = TOP_MULTS[Math.floor(Math.random() * TOP_MULTS.length)][0];
+    el('tsSpot').textContent = spotLabel(s);
+    el('tsMult').textContent = 'x' + m;
+    await wacht(90);
+  }
+  el('tsSpot').textContent = spotLabel(top.spot);
+  el('tsSpot').style.color = SPOT_INFO[top.spot].kleur;
+  el('tsMult').textContent = 'x' + top.mult;
+  box.classList.add('klaar');
+
+  const knop = document.querySelector(`.spot[data-spot="${top.spot}"]`);
+  knop.classList.add('heeft-top');
+  knop.querySelector('.sp-top').textContent = 'x' + top.mult;
+}
+
+// ----- Historie -----
+function voegToeAanHistorie(spot) {
+  historie.unshift(spot);
+  if (historie.length > 14) historie.pop();
+  const d = el('historie');
+  d.innerHTML = '';
+  historie.forEach(s => {
+    const i = SPOT_INFO[s];
+    const bol = document.createElement('div');
+    bol.className = 'hist';
+    bol.style.background = i.kleur;
+    bol.style.color = i.tekst;
+    bol.textContent = i.getal !== undefined ? i.naam : i.icoon;
+    d.appendChild(bol);
+  });
+}
+
+/* ========================================================================
+   BONUS-SCHERM (hulpfuncties)
+   ======================================================================== */
+
+function openBonus(titel, tm) {
+  el('bonusTitel').textContent = titel;
+  const top = el('bonusTop');
+  if (tm > 1) { top.style.display = 'block'; top.textContent = 'TOPSLOT x' + tm + ' op je bonus!'; }
+  else top.style.display = 'none';
+  el('bonusMsg').textContent = '';
+  el('bonusBody').innerHTML = '';
+  el('bonusKnop').style.display = 'none';
+  el('bonusOverlay').classList.add('show');
+  el('bonusOverlay').scrollTop = 0;
+}
+function sluitBonus() { el('bonusOverlay').classList.remove('show'); }
+function bonusMsg(t) { el('bonusMsg').textContent = t; }
+
+function wachtOpKnop(tekst) {
+  return new Promise(resolve => {
+    const k = el('bonusKnop');
+    k.textContent = tekst || 'DOORGAAN';
+    k.style.display = 'inline-block';
+    k.onclick = () => { k.style.display = 'none'; resolve(); };
+  });
+}
+
+function bonusResultaat(inzet, x, tm) {
+  const bedrag = inzet * x * tm;
+  const delen = `${euro(inzet)} x ${x}` + (tm > 1 ? ` x ${tm} (topslot)` : '');
+  const d = document.createElement('div');
+  d.className = 'groot-res';
+  d.innerHTML = `Je wint ${euro(bedrag)}<br><span style="font-size:15px;color:#d7c8f0;font-weight:600">${delen}</span>`;
+  el('bonusBody').appendChild(d);
+}
+
+/* ===== Muntworp ===== */
+async function bonusMuntworp(inzet, tm) {
+  const r = speelMuntworp();
+  openBonus('MUNTWORP', tm);
+  el('bonusBody').innerHTML = `
+    <div class="munt-rij">
+      <div class="munt-kant rood" id="mkRood">ROOD<b>x${r.rood}</b></div>
+      <div class="munt-scene"><div class="munt" id="munt">
+        <div class="munt-vlak voor">x${r.rood}</div>
+        <div class="munt-vlak achter">x${r.blauw}</div>
+      </div></div>
+      <div class="munt-kant blauw" id="mkBlauw">BLAUW<b>x${r.blauw}</b></div>
+    </div>`;
+  bonusMsg('Rood of blauw? De munt wordt opgegooid...');
+  await wacht(1200);
+  el('munt').style.transform = `rotateY(${360 * 7 + (r.uitkomst === 'blauw' ? 180 : 0)}deg)`;
+  await wacht(4500);
+  el(r.uitkomst === 'rood' ? 'mkRood' : 'mkBlauw').classList.add('wint');
+  bonusMsg((r.uitkomst === 'rood' ? 'ROOD' : 'BLAUW') + ' wint met x' + r.mult + '!');
+  bonusResultaat(inzet, r.mult, tm);
+  await wachtOpKnop();
+  sluitBonus();
+  return r.mult;
+}
+
+/* ===== Geldjacht ===== */
+function gjKleur(w) {
+  if (w >= 100) return '#ff3d6e';
+  if (w >= 50) return '#ff9f1c';
+  if (w >= 25) return '#ffd24d';
+  if (w >= 15) return '#58d68d';
+  if (w >= 10) return '#5aa9ff';
+  return '#c9b6ff';
+}
+
+async function bonusGeldjacht(inzet, tm) {
+  let tegels = maakGeldjacht();
+  openBonus('GELDJACHT', tm);
+  const body = el('bonusBody');
+  body.innerHTML = '<div class="gj-grid" id="gjGrid"></div>';
+  const grid = el('gjGrid');
+  const knoppen = tegels.map((w, i) => {
+    const t = document.createElement('div');
+    t.className = 'gj-tegel open';
+    t.style.setProperty('--k', gjKleur(w));
+    t.textContent = 'x' + w;
+    grid.appendChild(t);
+    return t;
+  });
+
+  bonusMsg('Onthoud de waarden...');
+  await wacht(4000);
+
+  // alles omdraaien en schudden
+  knoppen.forEach(t => { t.classList.remove('open'); t.textContent = '🎯'; t.classList.add('schud'); });
+  bonusMsg('De vakjes worden geschud...');
+  tegels = schud(schud(tegels));
+  await wacht(2600);
+  knoppen.forEach(t => t.classList.remove('schud'));
+
+  bonusMsg('Kies een vakje om op te schieten!');
+  const keuze = await new Promise(resolve => {
+    knoppen.forEach((t, i) => {
+      t.classList.add('kies');
+      t.onclick = () => resolve(i);
+    });
+  });
+  knoppen.forEach(t => { t.classList.remove('kies'); t.onclick = null; });
+
+  const x = tegels[keuze];
+  const gekozen = knoppen[keuze];
+  gekozen.classList.add('open', 'gekozen');
+  gekozen.style.setProperty('--k', gjKleur(x));
+  gekozen.textContent = 'x' + x;
+  await wacht(900);
+
+  knoppen.forEach((t, i) => {
+    if (i === keuze) return;
+    t.classList.add('open', 'vaag');
+    t.style.setProperty('--k', gjKleur(tegels[i]));
+    t.textContent = 'x' + tegels[i];
+  });
+  bonusMsg('Je raakte x' + x + '!');
+  bonusResultaat(inzet, x, tm);
+  await wachtOpKnop();
+  sluitBonus();
+  return x;
+}
+
+/* ===== Pachinko ===== */
+const PW = 560, PH = 600;
+const PK_RIJEN = 9;
+const PK_RIJ_Y = r => 70 + r * 44;
+const PK_SLOT_Y = PH - 96;
+
+function pkSlotKleur(w) {
+  if (w === 'D') return '#ffd24d';
+  if (w >= 50) return '#ff3d6e';
+  if (w >= 25) return '#ff9f1c';
+  if (w >= 15) return '#b57cff';
+  return '#5aa9ff';
+}
+
+function tekenPachinko(ctx, factor, bal, lichtOp) {
+  ctx.clearRect(0, 0, PW, PH);
+  const bg = ctx.createLinearGradient(0, 0, 0, PH);
+  bg.addColorStop(0, '#2a1450');
+  bg.addColorStop(1, '#10091f');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, PW, PH);
+
+  // pinnen
+  ctx.fillStyle = '#e7dcff';
+  for (let r = 0; r < PK_RIJEN; r++) {
+    const y = PK_RIJ_Y(r);
+    const start = r % 2 === 0 ? 35 : 70;
+    for (let x = start; x < PW; x += 70) {
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // vakken onderaan
+  const bw = PW / PACHINKO_VAKKEN.length;
+  PACHINKO_VAKKEN.forEach((w, i) => {
+    const x = i * bw;
+    ctx.fillStyle = pkSlotKleur(w);
+    ctx.globalAlpha = lichtOp === i ? 1 : 0.82;
+    ctx.fillRect(x + 1, PK_SLOT_Y, bw - 2, PH - PK_SLOT_Y);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = w === 'D' ? '#2b1d00' : '#101010';
+    ctx.font = 'bold 15px "Segoe UI", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const tekst = w === 'D' ? 'x2' : String(w * factor);
+    ctx.fillText(tekst, x + bw / 2, PK_SLOT_Y + 40);
+    if (w === 'D') {
+      ctx.font = 'bold 9px "Segoe UI", Arial, sans-serif';
+      ctx.fillText('ALLES', x + bw / 2, PK_SLOT_Y + 60);
+    }
+    if (lichtOp === i) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x + 2, PK_SLOT_Y + 1, bw - 4, PH - PK_SLOT_Y - 2);
+    }
+  });
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 2;
+  for (let i = 1; i < PACHINKO_VAKKEN.length; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * bw, PK_SLOT_Y - 14);
+    ctx.lineTo(i * bw, PH);
+    ctx.stroke();
+  }
+
+  if (bal) {
+    ctx.beginPath();
+    ctx.arc(bal.x, bal.y, 11, 0, Math.PI * 2);
+    const g = ctx.createRadialGradient(bal.x - 3, bal.y - 3, 2, bal.x, bal.y, 11);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(1, '#ff6b9a');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+function laatBalVallen(ctx, factor, slotIndex) {
+  return new Promise(resolve => {
+    const bw = PW / PACHINKO_VAKKEN.length;
+    const xt = (slotIndex + 0.5) * bw;
+    const x0 = PW / 2 + (Math.random() - 0.5) * 90;
+    const punten = [{ x: x0, y: 24 }];
+    for (let r = 0; r < PK_RIJEN; r++) {
+      const frac = (r + 1) / (PK_RIJEN + 1);
+      const basis = x0 + (xt - x0) * frac;
+      const ruis = (Math.random() - 0.5) * 56 * (1 - frac);
+      punten.push({ x: Math.max(24, Math.min(PW - 24, basis + ruis)), y: PK_RIJ_Y(r) - 17 });
+    }
+    punten.push({ x: xt, y: PK_SLOT_Y + 38 });
+
+    const hop = 250;
+    const t0 = performance.now();
+    function stap(nu) {
+      const verstreken = Math.max(0, nu - t0);
+      const i = Math.min(Math.floor(verstreken / hop), punten.length - 2);
+      const t = Math.min((verstreken - i * hop) / hop, 1);
+      const a = punten[i], b = punten[i + 1];
+      const x = a.x + (b.x - a.x) * t;
+      const y = a.y + (b.y - a.y) * (t * t * 0.7 + t * 0.3);
+      tekenPachinko(ctx, factor, { x, y }, -1);
+      if (verstreken < hop * (punten.length - 1)) requestAnimationFrame(stap);
+      else resolve();
+    }
+    requestAnimationFrame(stap);
+  });
+}
+
+async function bonusPachinko(inzet, tm) {
+  const res = speelPachinko();
+  openBonus('PACHINKO', tm);
+  el('bonusBody').innerHTML = `<canvas id="pkCanvas"></canvas>`;
+  const cv = el('pkCanvas');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = PW * dpr; cv.height = PH * dpr;
+  cv.style.width = Math.min(PW, window.innerWidth - 30) + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  let factor = 1;
+  tekenPachinko(ctx, factor, null, -1);
+  bonusMsg('De bal valt...');
+  await wacht(1200);
+
+  for (let n = 0; n < res.drops.length; n++) {
+    const d = res.drops[n];
+    await laatBalVallen(ctx, factor, d.index);
+    tekenPachinko(ctx, factor, null, d.index);
+    if (d.waarde === 'D') {
+      bonusMsg('DUBBEL! Alle waarden x2 en er valt nog een bal!');
+      await wacht(1400);
+      factor *= 2;
+      tekenPachinko(ctx, factor, null, -1);
+      await wacht(900);
+      bonusMsg('De volgende bal valt...');
+    } else {
+      bonusMsg('De bal landt op x' + (d.waarde * factor) + '!');
+    }
+  }
+
+  bonusResultaat(inzet, res.mult, tm);
+  await wachtOpKnop();
+  sluitBonus();
+  return res.mult;
+}
+
+/* ===== Gekke Tijd ===== */
+const GW = 500;
+const FLAPPERS = [
+  { naam: 'ROOD',  kleur: '#ff4d4d', hoek: 0 },
+  { naam: 'GROEN', kleur: '#2ecc71', hoek: Math.PI * 2 / 3 },
+  { naam: 'BLAUW', kleur: '#4d8dff', hoek: Math.PI * 4 / 3 },
+];
+const GT_SEG = Math.PI * 2 / GT_SEGMENTEN.length;
+
+function gtKleur(w) {
+  if (w === 'x2') return '#ffffff';
+  if (w === 'x3') return '#00ff9d';
+  if (w >= 200) return '#ffd700';
+  if (w >= 100) return '#ff3d6e';
+  if (w >= 50) return '#ff9f1c';
+  if (w >= 25) return '#fee440';
+  if (w >= 20) return '#f15bb5';
+  if (w >= 15) return '#9b5de5';
+  if (w >= 10) return '#2ec4b6';
+  return '#4ea1ff';
+}
+
+function tekenGT(ctx, rot, factor, gekozen, lichtOp) {
+  const c = GW / 2;
+  const R = c - 44;
+  ctx.clearRect(0, 0, GW, GW);
+
+  ctx.beginPath();
+  ctx.arc(c, c, R + 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#c9971f';
+  ctx.fill();
+
+  GT_SEGMENTEN.forEach((w, i) => {
+    const start = -Math.PI / 2 + i * GT_SEG + rot;
+    const midden = start + GT_SEG / 2;
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.arc(c, c, R, start, start + GT_SEG);
+    ctx.closePath();
+    ctx.fillStyle = gtKleur(w);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const onderkant = Math.sin(midden) > 0;
+    const afstand = R - 34;
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(midden + Math.PI / 2 + (onderkant ? Math.PI : 0));
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#101010';
+    const tekst = typeof w === 'string' ? w.toUpperCase() : String(w * factor);
+    ctx.font = (tekst.length > 3 ? 'bold 17px' : 'bold 22px') + ' "Segoe UI", Arial, sans-serif';
+    ctx.fillText(tekst, 0, onderkant ? afstand : -afstand);
+    ctx.restore();
+
+    if (lichtOp === i) {
+      ctx.beginPath();
+      ctx.moveTo(c, c);
+      ctx.arc(c, c, R, start, start + GT_SEG);
+      ctx.closePath();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }
+  });
+
+  ctx.beginPath();
+  ctx.arc(c, c, R * 0.22, 0, Math.PI * 2);
+  ctx.fillStyle = '#150e29';
+  ctx.fill();
+  ctx.strokeStyle = '#ffd24d';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // de drie flappers aan de rand van het wiel
+  FLAPPERS.forEach((f, k) => {
+    const actief = gekozen === null || gekozen === k;
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(f.hoek);
+    ctx.globalAlpha = actief ? 1 : 0.28;
+    ctx.beginPath();
+    ctx.moveTo(0, -R - 6);
+    ctx.lineTo(-17, -R - 38);
+    ctx.lineTo(17, -R - 38);
+    ctx.closePath();
+    ctx.fillStyle = f.kleur;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function draaiGT(ctx, startRot, index, flapper, factor, gekozen) {
+  return new Promise(resolve => {
+    // het midden van vak 'index' moet bij de gekozen flapper uitkomen
+    let doel = FLAPPERS[flapper].hoek - (index + 0.5) * GT_SEG;
+    while (doel < startRot + Math.PI * 2 * 5) doel += Math.PI * 2;
+    const duur = 6000;
+    const t0 = performance.now();
+    function stap(nu) {
+      const t = Math.max(0, Math.min((nu - t0) / duur, 1));
+      const e = 1 - Math.pow(1 - t, 4);
+      const rot = startRot + (doel - startRot) * e;
+      tekenGT(ctx, rot, factor, gekozen, t >= 1 ? index : -1);
+      if (t < 1) requestAnimationFrame(stap);
+      else resolve(doel % (Math.PI * 2));
+    }
+    requestAnimationFrame(stap);
+  });
+}
+
+async function bonusGekkeTijd(inzet, tm) {
+  const res = speelGekkeTijd();
+  openBonus('GEKKE TIJD', tm);
+  el('bonusBody').innerHTML = `<canvas id="gtCanvas"></canvas><div class="flap-keuze" id="flapKeuze"></div>`;
+  const cv = el('gtCanvas');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = GW * dpr; cv.height = GW * dpr;
+  cv.style.width = Math.min(GW, window.innerWidth - 30) + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  let rot = 0, factor = 1;
+  tekenGT(ctx, rot, factor, null, -1);
+
+  bonusMsg('Kies je flapper!');
+  const keuze = await new Promise(resolve => {
+    const rij = el('flapKeuze');
+    FLAPPERS.forEach((f, k) => {
+      const b = document.createElement('button');
+      b.className = 'flap-knop';
+      b.style.background = f.kleur;
+      b.textContent = f.naam;
+      b.onclick = () => resolve(k);
+      rij.appendChild(b);
+    });
+  });
+  el('flapKeuze').innerHTML = '';
+  tekenGT(ctx, rot, factor, keuze, -1);
+
+  for (let n = 0; n < res.rondes.length; n++) {
+    const ronde = res.rondes[n];
+    bonusMsg(n === 0 ? 'Het wiel draait...' : 'Het wiel draait opnieuw...');
+    await wacht(700);
+    rot = await draaiGT(ctx, rot, ronde.index, keuze, factor, keuze);
+
+    if (ronde.waarde === 'x2' || ronde.waarde === 'x3') {
+      const f = ronde.waarde === 'x2' ? 2 : 3;
+      bonusMsg(ronde.waarde.toUpperCase() + '! Alle waarden worden ' + f + 'x zo groot!');
+      await wacht(1800);
+      factor *= f;
+      tekenGT(ctx, rot, factor, keuze, -1);
+      await wacht(1200);
+    } else {
+      bonusMsg('Jouw flapper wijst naar x' + (ronde.waarde * ronde.factor) + '!');
+    }
+  }
+
+  bonusResultaat(inzet, res.mult, tm);
+  await wachtOpKnop();
+  sluitBonus();
+  return res.mult;
+}
+
+async function speelBonus(spot, inzet, tm) {
+  if (spot === 'CF') return bonusMuntworp(inzet, tm);
+  if (spot === 'CH') return bonusGeldjacht(inzet, tm);
+  if (spot === 'PK') return bonusPachinko(inzet, tm);
+  return bonusGekkeTijd(inzet, tm);
+}
+
+/* ========================================================================
+   EEN RONDE SPELEN
+   ======================================================================== */
+
+async function speelRonde() {
+  if (bezig) return;
+  const totaal = totaleInzet();
+  if (totaal === 0) { toonBericht('Zet eerst in op een of meer vakken.'); return; }
+  if (totaal > saldo()) { toonBericht('Niet genoeg saldo.'); return; }
+
+  bezig = true;
+  zetKnoppen(false);
+  vorigeInzetten = Object.assign({}, inzetten);
+  saldoMin(totaal);
+  document.querySelectorAll('.spot').forEach(k => k.classList.remove('wint'));
+  winnendIndex = -1;
+  tekenGrootWiel();
+  toonBericht('Geen inzetten meer mogelijk. Topslot...');
+  zetHub('TOP', 'SLOT');
+
+  topslot = trekTopslot();
+  await animeerTopslot(topslot);
+
+  toonBericht('Het rad draait...');
+  zetHub('...', '');
+  const index = trekIndex();
+  const landing = WIEL[index];
+  await draaiGrootWiel(index);
+
+  const info = SPOT_INFO[landing];
+  zetHub(info.getal !== undefined ? info.naam : info.icoon, info.getal !== undefined ? '' : info.naam, info.getal !== undefined ? info.kleur : '#fff');
+  voegToeAanHistorie(landing);
+
+  const inzetOpVak = inzetten[landing] || 0;
+  let uitbetaling = 0;
+
+  if (inzetOpVak > 0) {
+    const tm = topslot.spot === landing ? topslot.mult : 1;
+    let bonusX = 0;
+    if (info.getal === undefined) {
+      toonBericht('BONUS! ' + info.naam + '!');
+      await wacht(1500);
+      bonusX = await speelBonus(landing, inzetOpVak, tm);
+    }
+    uitbetaling = berekenUitbetaling(landing, inzetOpVak, landing, topslot, bonusX);
+    document.querySelector(`.spot[data-spot="${landing}"]`).classList.add('wint');
+  }
+
+  saldoPlus(uitbetaling);
+
+  const naam = info.getal !== undefined ? info.naam : info.naam;
+  if (uitbetaling > totaal) {
+    toonBericht(`${naam}! Je wint ${euro(uitbetaling - totaal)}!`, true);
+  } else if (uitbetaling > 0) {
+    toonBericht(`${naam}: je krijgt ${euro(uitbetaling)} terug (inzet was ${euro(totaal)}).`);
+  } else if (info.getal === undefined) {
+    toonBericht(`Bonus ${naam}, maar je had er geen inzet op. Je verliest ${euro(totaal)}.`);
+  } else {
+    toonBericht(`${naam}. Helaas, je verliest ${euro(totaal)}.`);
+  }
+
+  inzetten = {};
+  ververInzetten();
+  bezig = false;
+  zetKnoppen(true);
+  zetHub('GEKKE', 'TIJD');
+}
+
+el('spinBtn').addEventListener('click', speelRonde);
+
+bouwVakken();
+toonSaldo();
+ververInzetten();
+tekenGrootWiel();
+</script>
+
+</body>
+</html>
