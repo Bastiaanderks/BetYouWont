@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../leeftijd.js"></script>
+    <title>Mines - BetYouWon't</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .mines-wrap { max-width: 520px; margin: 30px auto; padding: 0 16px; text-align: center; }
+        .mines-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .mines-controls label { display: flex; flex-direction: column; font-size: 14px; gap: 4px; }
+        .mines-controls input, .mines-controls select { padding: 8px; border-radius: 6px; border: 1px solid #555; background: #1c1c1c; color: #fff; width: 110px; }
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
+        .tile { aspect-ratio: 1; border: none; border-radius: 10px; background: #2b2b3a; color: #fff; font-size: 28px; cursor: pointer; transition: transform .1s, background .2s; }
+        .tile:hover:not(:disabled) { transform: scale(1.05); background: #3a3a50; }
+        .tile.safe { background: #1f7a3d; }
+        .tile.mine { background: #a82323; }
+        .tile.dim { opacity: .45; }
+        .tile:disabled { cursor: default; }
+        .mines-info { display: flex; justify-content: space-around; margin: 10px 0; font-size: 16px; }
+        .mines-info strong { display: block; font-size: 22px; }
+        #minesMsg { min-height: 28px; font-weight: bold; margin-top: 10px; }
+        .mines-actions button { padding: 12px 22px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; margin: 4px; }
+        #cashoutBtn:disabled { opacity: .4; cursor: default; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">Bet<span>You</span>Won't</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../games.html">Games</a>
+        <a href="../saldo.html">Saldo kopen</a>
+    </nav>
+    <div class="balance">
+        Saldo:
+        <span id="balanceDisplay">€1000</span>
+    </div>
+</header>
+
+<section class="mines-wrap">
+    <h2>Mines</h2>
+    <p>Vind de diamanten, ontwijk de mijnen. Cash out wanneer je wilt.</p>
+
+    <div class="mines-controls">
+        <label>Inzet (€)
+            <input type="number" id="bet" value="10" min="1">
+        </label>
+        <label>Aantal mijnen
+            <select id="mineCount">
+                <option>1</option><option>3</option><option selected>5</option>
+                <option>10</option><option>15</option><option>20</option><option>24</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="mines-info">
+        <div>Multiplier<strong id="mult">1.00x</strong></div>
+        <div>Winst nu<strong id="profit">€0</strong></div>
+    </div>
+
+    <div class="mines-grid" id="grid"></div>
+
+    <div class="mines-actions">
+        <button id="startBtn" class="btn-secondary">Start</button>
+        <button id="cashoutBtn" class="btn-secondary" disabled>Cash out</button>
+    </div>
+    <div id="minesMsg"></div>
+</section>
+
+<footer>
+    <p>&copy; 2026 BetYouWon't — Schoolproject, geen echt geld.</p>
+</footer>
+
+<script src="../balance.js"></script>
+<script>
+/* ===== SALDO KOPPELING =====
+   Ik weet niet hoe jouw balance.js werkt, dus deze twee functies lezen en
+   schrijven het saldo via #balanceDisplay. Gebruikt balance.js eigen functies
+   (bv. getBalance / setBalance / updateBalance)? Pas dan alleen deze twee aan. */
+function getSaldo() {
+    return parseFloat(document.getElementById('balanceDisplay').textContent.replace(/[^0-9.\-]/g, '')) || 0;
+}
+function setSaldo(n) {
+    n = Math.round(n * 100) / 100;
+    if (typeof window.setBalance === 'function') window.setBalance(n);
+    else if (typeof window.updateBalance === 'function') window.updateBalance(n);
+    document.getElementById('balanceDisplay').textContent = '€' + n;
+}
+
+/* ===== MINES ===== */
+const SIZE = 25, HOUSE_EDGE = 0.97;
+const gridEl = document.getElementById('grid');
+const startBtn = document.getElementById('startBtn');
+const cashBtn = document.getElementById('cashoutBtn');
+const msg = document.getElementById('minesMsg');
+let mines = new Set(), opened = 0, bet = 0, active = false, mineCount = 5;
+
+function multiplier(k, m) {
+    // kans dat k vakjes achter elkaar veilig zijn
+    let p = 1;
+    for (let i = 0; i < k; i++) p *= (SIZE - m - i) / (SIZE - i);
+    return HOUSE_EDGE / p;
+}
+
+function render() {
+    const mult = opened ? multiplier(opened, mineCount) : 1;
+    document.getElementById('mult').textContent = mult.toFixed(2) + 'x';
+    document.getElementById('profit').textContent = '€' + (bet * mult - bet).toFixed(2);
+}
+
+function buildGrid() {
+    gridEl.innerHTML = '';
+    for (let i = 0; i < SIZE; i++) {
+        const b = document.createElement('button');
+        b.className = 'tile';
+        b.disabled = true;
+        b.onclick = () => pick(i, b);
+        gridEl.appendChild(b);
+    }
+}
+
+function start() {
+    bet = Math.floor(parseFloat(document.getElementById('bet').value));
+    mineCount = parseInt(document.getElementById('mineCount').value);
+    if (!bet || bet < 1) { msg.textContent = 'Vul een geldige inzet in.'; return; }
+    if (bet > getSaldo()) { msg.textContent = 'Te weinig saldo.'; return; }
+
+    setSaldo(getSaldo() - bet);
+    mines = new Set();
+    while (mines.size < mineCount) mines.add(Math.floor(Math.random() * SIZE));
+    opened = 0; active = true;
+    buildGrid();
+    gridEl.querySelectorAll('.tile').forEach(t => t.disabled = false);
+    startBtn.disabled = true;
+    cashBtn.disabled = true;
+    msg.textContent = 'Kies een vakje!';
+    render();
+}
+
+function reveal(hitIndex) {
+    gridEl.querySelectorAll('.tile').forEach((t, i) => {
+        t.disabled = true;
+        if (mines.has(i)) { t.textContent = '💣'; t.classList.add('mine'); if (i !== hitIndex) t.classList.add('dim'); }
+        else if (!t.classList.contains('safe')) { t.textContent = '💎'; t.classList.add('safe', 'dim'); }
+    });
+}
+
+function pick(i, el) {
+    if (!active) return;
+    if (mines.has(i)) {
+        active = false;
+        reveal(i);
+        msg.textContent = 'BOEM! Je bent je inzet kwijt.';
+        startBtn.disabled = false; cashBtn.disabled = true;
+        return;
+    }
+    el.textContent = '💎';
+    el.classList.add('safe');
+    el.disabled = true;
+    opened++;
+    cashBtn.disabled = false;
+    render();
+    if (opened === SIZE - mineCount) cashout(); // alles gevonden
+}
+
+function cashout() {
+    if (!active || opened === 0) return;
+    active = false;
+    const win = bet * multiplier(opened, mineCount);
+    setSaldo(getSaldo() + win);
+    reveal(-1);
+    msg.textContent = 'Uitbetaald: €' + win.toFixed(2) + ' 🎉';
+    startBtn.disabled = false; cashBtn.disabled = true;
+}
+
+startBtn.onclick = start;
+cashBtn.onclick = cashout;
+buildGrid();
+render();
+</script>
+</body>
+</html>

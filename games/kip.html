@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../leeftijd.js"></script>
+<title>Kip Oversteek - BetYouWon't</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100vh; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e8f1f8;
+    text-align: center;
+    padding: 20px 10px 70px;
+    background: #0f212e;
+  }
+  .topbar { text-align: left; margin-bottom: 8px; }
+  .back-btn {
+    display: inline-block;
+    color: #fff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 16px;
+    background: #213743;
+    border: 1px solid #2f4553;
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .back-btn:hover { background: #2f4553; border-color: #00e701; }
+  h1 { margin: 4px 0 2px; font-size: 40px; letter-spacing: 2px; color: #ffd24d; text-shadow: 0 0 14px rgba(255,210,77,0.35); }
+  .subtitle { color: #8fa7b8; margin-bottom: 14px; }
+
+  .game { max-width: 900px; margin: 0 auto; }
+
+  /* ----- Statusbalk ----- */
+  #statusbalk { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .box {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid #2f4553;
+    border-radius: 10px;
+    padding: 8px 16px;
+    min-width: 120px;
+  }
+  .box .lbl { font-size: 11px; letter-spacing: 1px; color: #8fa7b8; text-transform: uppercase; }
+  .box .val { font-size: 22px; font-weight: 800; color: #00e701; }
+  .box .val.geel { color: #ffd24d; }
+
+  /* ----- De weg ----- */
+  #scene {
+    position: relative;
+    height: 330px;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 3px solid #2f4553;
+    background: #2a2f38;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  #scene.schud { animation: schudden 0.4s linear; }
+  @keyframes schudden {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 3px); }
+    40% { transform: translate(6px, -3px); }
+    60% { transform: translate(-4px, -2px); }
+    80% { transform: translate(4px, 2px); }
+  }
+  #world { position: absolute; left: 0; top: 0; height: 100%; transition: transform 0.45s ease-out; }
+  .tegel { position: absolute; top: 0; height: 100%; }
+
+  .stoep {
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 20px),
+      linear-gradient(180deg, #3f8f3f, #2c6b2c);
+    border-right: 6px solid #cfcfcf;
+  }
+  .eind {
+    background:
+      radial-gradient(circle at 50% 55%, rgba(255,215,0,0.45), transparent 60%),
+      linear-gradient(180deg, #3f8f3f, #2c6b2c);
+    border-left: 6px solid #cfcfcf;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    font-size: 54px;
+  }
+  .eind small { font-size: 14px; font-weight: 800; color: #fff3b0; letter-spacing: 2px; margin-top: 6px; }
+  .stoep .bord { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+
+  .baan {
+    background: linear-gradient(180deg, #383d48, #2b3039);
+    border-right: 3px dashed rgba(255,255,255,0.35);
+    overflow: hidden;
+  }
+  .baan.klaar { background: linear-gradient(180deg, #2f5a39, #244630); }
+  .baan.volgende { box-shadow: inset 0 0 0 3px rgba(255,210,77,0.55); }
+  .baan.dood { background: linear-gradient(180deg, #6b2020, #4a1515); }
+
+  .put {
+    position: absolute;
+    left: 50%; bottom: 18px;
+    transform: translateX(-50%);
+    min-width: 62px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: #14181f;
+    border: 2px solid #5b6575;
+    color: #cfd8e3;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .baan.klaar .put { background: #0f3a1c; border-color: #00e701; color: #00e701; }
+  .baan.volgende .put { border-color: #ffd24d; color: #ffd24d; }
+
+  .auto {
+    position: absolute;
+    left: 50%;
+    font-size: 40px;
+    line-height: 1;
+    pointer-events: none;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .auto.neer { animation-name: rijNeer; }
+  .auto.op { animation-name: rijOp; }
+  @keyframes rijNeer {
+    from { top: -70px; transform: translateX(-50%) rotate(90deg); }
+    to   { top: 340px; transform: translateX(-50%) rotate(90deg); }
+  }
+  @keyframes rijOp {
+    from { top: 340px; transform: translateX(-50%) rotate(-90deg); }
+    to   { top: -70px; transform: translateX(-50%) rotate(-90deg); }
+  }
+
+  #kip {
+    position: absolute;
+    top: 118px;
+    width: 56px; height: 56px;
+    font-size: 46px;
+    line-height: 56px;
+    text-align: center;
+    z-index: 5;
+    transition: left 0.35s ease-in-out;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+  }
+  #kip.hop { animation: hop 0.35s ease-in-out; }
+  @keyframes hop { 0%, 100% { margin-top: 0; } 50% { margin-top: -26px; } }
+  #kip.dood { font-size: 50px; }
+
+  #hudMult {
+    position: absolute;
+    left: 12px; top: 10px;
+    z-index: 8;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #ffd24d;
+    border-radius: 12px;
+    padding: 4px 14px;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffd24d;
+  }
+
+  /* ----- Bediening ----- */
+  #paneel {
+    margin-top: 14px;
+    background: #15222d;
+    border: 1px solid #2f4553;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .groep { text-align: left; }
+  .groep label { display: block; font-size: 12px; letter-spacing: 1px; color: #8fa7b8; text-transform: uppercase; margin-bottom: 6px; }
+  .inzetrij { display: flex; gap: 6px; align-items: center; }
+  #inzet {
+    width: 110px;
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    color: #fff;
+    background: #0f1a23;
+    border: 2px solid #2f4553;
+    border-radius: 10px;
+    padding: 9px;
+  }
+  .mini {
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 14px;
+    color: #fff;
+    background: #213743;
+    border: 1px solid #2f4553;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  .mini:hover:not(:disabled) { background: #2f4553; }
+  .mini:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  #moeilijkheid { display: flex; gap: 6px; flex-wrap: wrap; }
+  .moeilijk {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 2px solid #2f4553;
+    background: #0f1a23;
+    color: #b6c8d6;
+    cursor: pointer;
+  }
+  .moeilijk.actief { border-color: #ffd24d; color: #ffd24d; background: #2b2410; }
+  .moeilijk:disabled { cursor: not-allowed; opacity: 0.6; }
+
+  .groteknop {
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 14px 30px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    color: #05200a;
+    min-width: 170px;
+  }
+  .groteknop:disabled { opacity: 0.4; cursor: not-allowed; }
+  #startBtn { background: #00e701; }
+  #startBtn:hover:not(:disabled) { background: #3dff3a; }
+  #gaBtn { background: #ffd24d; color: #2b2200; }
+  #gaBtn:hover:not(:disabled) { background: #ffe07d; }
+  #uitbetalBtn { background: #5aa9ff; color: #001a33; }
+  #uitbetalBtn:hover:not(:disabled) { background: #82bdff; }
+
+  #bericht { min-height: 34px; font-size: 20px; font-weight: 700; color: #ffd24d; margin: 14px 0 6px; }
+  #bericht.winst { color: #00e701; text-shadow: 0 0 10px rgba(0,231,1,0.45); }
+  #bericht.verlies { color: #ff6b7d; }
+  #historie { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; min-height: 34px; margin-bottom: 14px; }
+  .hist { padding: 5px 10px; border-radius: 999px; font-weight: 800; font-size: 13px; }
+  .hist.w { background: #0f3a1c; border: 1px solid #00e701; color: #00e701; }
+  .hist.l { background: #3a1018; border: 1px solid #ff6b7d; color: #ff6b7d; }
+
+  #regelsKnop { background: none; border: 1px solid #2f4553; color: #8fa7b8; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+  #regels {
+    display: none;
+    max-width: 640px;
+    margin: 12px auto 0;
+    text-align: left;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid #2f4553;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #b6c8d6;
+  }
+  #regels.show { display: block; }
+  #regels b { color: #fff; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 30px; }
+    #scene { height: 300px; }
+    .groteknop { min-width: 140px; font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="../games.html">&larr; Terug naar games</a>
+</div>
+
+<h1>KIP OVERSTEEK</h1>
+<div class="subtitle">Steek de drukke weg over. Elke baan levert meer op, maar een auto kan je kip raken!</div>
+
+<div class="game">
+  <div id="statusbalk">
+    <div class="box"><div class="lbl">Saldo</div><div class="val" id="saldoVal">€1000</div></div>
+    <div class="box"><div class="lbl">Baan</div><div class="val geel" id="baanVal">0 / 0</div></div>
+    <div class="box"><div class="lbl">Kans op de volgende baan</div><div class="val geel" id="kansVal">-</div></div>
+    <div class="box"><div class="lbl">Nu uitbetalen</div><div class="val" id="winVal">€0</div></div>
+  </div>
+
+  <div id="scene">
+    <div id="hudMult">x1.00</div>
+    <div id="world"></div>
+  </div>
+
+  <div id="paneel">
+    <div class="groep">
+      <label for="inzet">Inzet (€)</label>
+      <div class="inzetrij">
+        <button class="mini" id="halfBtn">1/2</button>
+        <input type="number" id="inzet" value="10" min="1" max="5000">
+        <button class="mini" id="dubbelBtn">2x</button>
+      </div>
+    </div>
+    <div class="groep">
+      <label>Moeilijkheid</label>
+      <div id="moeilijkheid"></div>
+    </div>
+    <div class="groep" id="knoppen">
+      <button class="groteknop" id="startBtn">START</button>
+      <button class="groteknop" id="gaBtn" style="display:none">GA!</button>
+      <button class="groteknop" id="uitbetalBtn" style="display:none" disabled>UITBETALEN</button>
+    </div>
+  </div>
+
+  <div id="bericht">Kies je inzet en moeilijkheid en druk op START.</div>
+  <div id="historie"></div>
+
+  <button id="regelsKnop">Spelregels tonen</button>
+  <div id="regels">
+    <b>Zo werkt het:</b> kies je inzet en een moeilijkheid en druk op START. Met <b>GA!</b> steekt je kip de volgende baan over. Haalt ze het, dan stijgt je vermenigvuldiger. Raakt een auto haar, dan ben je je inzet kwijt.<br><br>
+    Je kunt <b>op elk moment uitbetalen</b> (behalve voor je de eerste baan hebt gehaald). Je krijgt dan je inzet maal de vermenigvuldiger. Haal je het einde, dan wordt er automatisch uitbetaald.<br><br>
+    <b>Moeilijkheid:</b> hoe moeilijker, hoe groter de kans dat een baan fout gaat, maar hoe sneller de vermenigvuldiger stijgt en hoe meer je kunt winnen. Elke baan is een nieuwe, eerlijke worp: een auto die er eerder niet was, betekent niets voor de volgende baan.
+  </div>
+</div>
+
+<script src="../balance.js"></script>
+<script>
+/* ========================================================================
+   INSTELLINGEN
+   p = kans dat je kip een baan haalt. De vermenigvuldiger na k banen is
+   0.96 / p^k (dus ongeveer 96% van de inzet komt gemiddeld terug).
+   ======================================================================== */
+const TERUGBETALING = 0.96;
+const NIVEAUS = [
+  { id: 'makkelijk', naam: 'Makkelijk', p: 0.92, banen: 30 },
+  { id: 'gemiddeld', naam: 'Gemiddeld', p: 0.85, banen: 25 },
+  { id: 'moeilijk',  naam: 'Moeilijk',  p: 0.75, banen: 20 },
+  { id: 'hardcore',  naam: 'Hardcore',  p: 0.62, banen: 16 },
+];
+const MIN_INZET = 1;
+const MAX_INZET = 5000;
+const AUTOS = ['🚗', '🚕', '🚙', '🚌', '🚓', '🚚', '🏎️', '🚐'];
+
+/* ========================================================================
+   Engine (zonder scherm)
+   ======================================================================== */
+function maakTabel(niveau) {
+  const t = [1];
+  for (let k = 1; k <= niveau.banen; k++) {
+    t.push(Math.floor(TERUGBETALING / Math.pow(niveau.p, k) * 100) / 100);
+  }
+  return t;
+}
+
+function haaltBaan(niveau) {
+  return Math.random() < niveau.p;
+}
+
+/* ========================================================================
+   Scherm
+   ======================================================================== */
+const el = id => document.getElementById(id);
+const wacht = ms => new Promise(r => setTimeout(r, ms));
+const euro = n => '€' + Math.floor(n);
+const fmt = m => 'x' + m.toFixed(2);
+
+// ----- Saldo (balance.js, anders een eigen saldo) -----
+let eigenSaldo = 1000;
+function heeftBalanceJs() {
+  return typeof getBalance === 'function' && typeof addBalance === 'function' && typeof subtractBalance === 'function';
+}
+function saldo() { return heeftBalanceJs() ? getBalance() : eigenSaldo; }
+function saldoPlus(n) { if (n <= 0) return; if (heeftBalanceJs()) addBalance(n); else eigenSaldo += n; toonSaldo(); }
+function saldoMin(n) { if (n <= 0) return; if (heeftBalanceJs()) subtractBalance(n); else eigenSaldo -= n; toonSaldo(); }
+function toonSaldo() { el('saldoVal').textContent = '€' + saldo(); }
+
+const START_BREEDTE = 120;
+const BAAN_BREEDTE = 100;
+const EIND_BREEDTE = 150;
+
+let niveau = NIVEAUS[1];
+let tabel = maakTabel(niveau);
+let status = 'wacht';       // wacht | speelt | klaar
+let bezig = false;          // een stap is bezig
+let inzetBedrag = 0;
+let positie = 0;            // 0 = startstoep, 1..banen = baan
+const historie = [];
+
+const scene = el('scene');
+const wereld = el('world');
+let kip = null;
+
+function baanX(i) {
+  if (i === 0) return 0;
+  if (i > niveau.banen) return START_BREEDTE + niveau.banen * BAAN_BREEDTE;
+  return START_BREEDTE + (i - 1) * BAAN_BREEDTE;
+}
+function middenX(i) {
+  const b = i === 0 ? START_BREEDTE : (i > niveau.banen ? EIND_BREEDTE : BAAN_BREEDTE);
+  return baanX(i) + b / 2;
+}
+function werelBreedte() {
+  return START_BREEDTE + niveau.banen * BAAN_BREEDTE + EIND_BREEDTE;
+}
+
+function bouwWeg() {
+  wereld.innerHTML = '';
+  wereld.style.width = werelBreedte() + 'px';
+  wereld.style.transition = 'none';
+  wereld.style.transform = 'translateX(0px)';
+
+  const start = document.createElement('div');
+  start.className = 'tegel stoep';
+  start.style.left = '0px';
+  start.style.width = START_BREEDTE + 'px';
+  start.innerHTML = '<div class="bord">START</div>';
+  wereld.appendChild(start);
+
+  for (let i = 1; i <= niveau.banen; i++) {
+    const baan = document.createElement('div');
+    baan.className = 'tegel baan';
+    baan.id = 'baan' + i;
+    baan.style.left = baanX(i) + 'px';
+    baan.style.width = BAAN_BREEDTE + 'px';
+
+    // een auto die op de achtergrond rijdt
+    const auto = document.createElement('div');
+    auto.className = 'auto ' + (i % 2 === 0 ? 'op' : 'neer');
+    auto.textContent = AUTOS[Math.floor(Math.random() * AUTOS.length)];
+    auto.style.animationDuration = (2.2 + Math.random() * 2.4) + 's';
+    auto.style.animationDelay = (-Math.random() * 4) + 's';
+    baan.appendChild(auto);
+
+    const put = document.createElement('div');
+    put.className = 'put';
+    put.textContent = fmt(tabel[i]);
+    baan.appendChild(put);
+    wereld.appendChild(baan);
+  }
+
+  const eind = document.createElement('div');
+  eind.className = 'tegel eind';
+  eind.style.left = baanX(niveau.banen + 1) + 'px';
+  eind.style.width = EIND_BREEDTE + 'px';
+  eind.innerHTML = '🥚<small>FINISH</small>';
+  wereld.appendChild(eind);
+
+  kip = document.createElement('div');
+  kip.id = 'kip';
+  kip.textContent = '🐔';
+  kip.style.left = (middenX(0) - 28) + 'px';
+  wereld.appendChild(kip);
+
+  markeerVolgende();
+  camera(false);
+}
+
+function markeerVolgende() {
+  document.querySelectorAll('.baan').forEach(b => b.classList.remove('volgende'));
+  const b = el('baan' + (positie + 1));
+  if (b && status === 'speelt') b.classList.add('volgende');
+}
+
+function camera(animeer) {
+  const breedte = scene.clientWidth;
+  let offset = middenX(positie) - breedte * 0.3;
+  offset = Math.max(0, Math.min(offset, werelBreedte() - breedte));
+  wereld.style.transition = animeer ? 'transform 0.45s ease-out' : 'none';
+  wereld.style.transform = `translateX(${-offset}px)`;
+}
+
+function verplaatsKip(naarPositie) {
+  kip.classList.remove('hop');
+  void kip.offsetWidth;
+  kip.classList.add('hop');
+  kip.style.left = (middenX(naarPositie) - 28) + 'px';
+  const oud = positie;
+  positie = naarPositie;
+  camera(true);
+  return wacht(380).then(() => { positie = positie; return oud; });
+}
+
+function toonBericht(tekst, soort) {
+  const b = el('bericht');
+  b.textContent = tekst;
+  b.className = soort || '';
+}
+
+function ververStatus() {
+  el('baanVal').textContent = positie + ' / ' + niveau.banen;
+  el('hudMult').textContent = fmt(tabel[positie]);
+  if (status === 'speelt') {
+    el('kansVal').textContent = Math.round(niveau.p * 100) + '%';
+    el('winVal').textContent = euro(inzetBedrag * tabel[positie]);
+  } else {
+    el('kansVal').textContent = '-';
+    el('winVal').textContent = '€0';
+  }
+}
+
+function voegToeAanHistorie(tekst, gewonnen) {
+  historie.unshift({ tekst, gewonnen });
+  if (historie.length > 12) historie.pop();
+  const d = el('historie');
+  d.innerHTML = '';
+  historie.forEach(h => {
+    const s = document.createElement('span');
+    s.className = 'hist ' + (h.gewonnen ? 'w' : 'l');
+    s.textContent = h.tekst;
+    d.appendChild(s);
+  });
+}
+
+function zetKnoppen() {
+  const speelt = status === 'speelt';
+  el('startBtn').style.display = speelt ? 'none' : 'inline-block';
+  el('gaBtn').style.display = speelt ? 'inline-block' : 'none';
+  el('uitbetalBtn').style.display = speelt ? 'inline-block' : 'none';
+  el('gaBtn').disabled = bezig;
+  el('uitbetalBtn').disabled = bezig || positie === 0;
+  el('inzet').disabled = speelt;
+  el('halfBtn').disabled = speelt;
+  el('dubbelBtn').disabled = speelt;
+  document.querySelectorAll('.moeilijk').forEach(b => { b.disabled = speelt; });
+}
+
+// ----- Moeilijkheid -----
+function bouwNiveaus() {
+  const d = el('moeilijkheid');
+  d.innerHTML = '';
+  NIVEAUS.forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'moeilijk' + (n === niveau ? ' actief' : '');
+    b.textContent = n.naam;
+    b.title = `${Math.round((1 - n.p) * 100)}% kans op een ongeluk per baan, ${n.banen} banen, tot ${fmt(maakTabel(n)[n.banen])}`;
+    b.onclick = () => {
+      if (status === 'speelt') return;
+      niveau = n;
+      tabel = maakTabel(n);
+      positie = 0;
+      status = 'wacht';
+      bouwNiveaus();
+      bouwWeg();
+      ververStatus();
+      toonBericht(`${n.naam}: ${Math.round((1 - n.p) * 100)}% kans op een ongeluk per baan. Hoogste winst ${fmt(tabel[n.banen])}.`);
+    };
+    d.appendChild(b);
+  });
+}
+
+// ----- Spelverloop -----
+function start() {
+  if (status === 'speelt') return;
+  let b = parseInt(el('inzet').value, 10);
+  if (isNaN(b) || b < MIN_INZET) { toonBericht('Vul een geldige inzet in.', 'verlies'); return; }
+  if (b > MAX_INZET) b = MAX_INZET;
+  if (b > saldo()) { toonBericht('Je hebt niet genoeg saldo.', 'verlies'); return; }
+
+  inzetBedrag = b;
+  el('inzet').value = b;
+  saldoMin(b);
+  positie = 0;
+  status = 'speelt';
+  bezig = false;
+  bouwWeg();
+  ververStatus();
+  zetKnoppen();
+  markeerVolgende();
+  toonBericht('Druk op GA! om de eerste baan over te steken.');
+}
+
+async function ga() {
+  if (status !== 'speelt' || bezig) return;
+  bezig = true;
+  zetKnoppen();
+
+  const volgende = positie + 1;
+  const baan = el('baan' + volgende);
+  await verplaatsKip(volgende);
+
+  if (haaltBaan(niveau)) {
+    baan.classList.add('klaar');
+    baan.classList.remove('volgende');
+    const auto = baan.querySelector('.auto');
+    if (auto) auto.style.display = 'none';
+    ververStatus();
+    bezig = false;
+
+    if (positie === niveau.banen) {
+      await verplaatsKip(niveau.banen + 1);
+      positie = niveau.banen;
+      toonBericht('Over de streep! Het gouden ei is van jou!', 'winst');
+      await wacht(500);
+      uitbetalen(true);
+      return;
+    }
+    markeerVolgende();
+    toonBericht(`Gehaald! Je vermenigvuldiger is ${fmt(tabel[positie])}. Doorgaan of uitbetalen?`);
+    zetKnoppen();
+  } else {
+    await aangereden(baan, volgende);
+  }
+}
+
+async function aangereden(baan, nummer) {
+  // een auto komt aanrijden
+  const oud = baan.querySelector('.auto');
+  if (oud) oud.style.display = 'none';
+  const omlaag = nummer % 2 === 0 ? false : true;
+  const killer = document.createElement('div');
+  killer.className = 'auto';
+  killer.style.animation = 'none';
+  killer.style.fontSize = '52px';
+  killer.textContent = AUTOS[Math.floor(Math.random() * AUTOS.length)];
+  killer.style.transform = `translateX(-50%) rotate(${omlaag ? 90 : -90}deg)`;
+  killer.style.top = omlaag ? '-80px' : '360px';
+  baan.appendChild(killer);
+  await wacht(30);
+  killer.style.transition = 'top 0.35s ease-in';
+  killer.style.top = '112px';
+  await wacht(330);
+
+  kip.textContent = '💥';
+  kip.classList.add('dood');
+  scene.classList.remove('schud');
+  void scene.offsetWidth;
+  scene.classList.add('schud');
+  baan.classList.add('dood');
+  await wacht(500);
+  kip.textContent = '🍗';
+  killer.style.transition = 'top 0.6s ease-in';
+  killer.style.top = omlaag ? '380px' : '-90px';
+
+  status = 'klaar';
+  bezig = false;
+  const verloren = inzetBedrag;
+  voegToeAanHistorie('💀 baan ' + nummer, false);
+  toonBericht(`Au! Je kip is geraakt op baan ${nummer}. Je verliest ${euro(verloren)}.`, 'verlies');
+  ververStatus();
+  zetKnoppen();
+}
+
+function uitbetalen(automatisch) {
+  if (status !== 'speelt' || positie === 0) return;
+  if (bezig && !automatisch) return;
+  const mult = tabel[positie];
+  const bedrag = Math.floor(inzetBedrag * mult);
+  saldoPlus(bedrag);
+  status = 'klaar';
+  bezig = false;
+  voegToeAanHistorie(fmt(mult), true);
+  toonBericht(`Uitbetaald! ${fmt(mult)} = ${euro(bedrag)} (winst ${euro(bedrag - inzetBedrag)}).`, 'winst');
+  ververStatus();
+  zetKnoppen();
+}
+
+// ----- Knoppen -----
+el('startBtn').addEventListener('click', start);
+el('gaBtn').addEventListener('click', ga);
+el('uitbetalBtn').addEventListener('click', () => uitbetalen(false));
+el('halfBtn').addEventListener('click', () => {
+  const v = Math.max(MIN_INZET, Math.floor((parseInt(el('inzet').value, 10) || MIN_INZET) / 2));
+  el('inzet').value = v;
+});
+el('dubbelBtn').addEventListener('click', () => {
+  const v = Math.min(MAX_INZET, (parseInt(el('inzet').value, 10) || MIN_INZET) * 2);
+  el('inzet').value = v;
+});
+el('regelsKnop').addEventListener('click', () => {
+  const r = el('regels');
+  r.classList.toggle('show');
+  el('regelsKnop').textContent = r.classList.contains('show') ? 'Spelregels verbergen' : 'Spelregels tonen';
+});
+window.addEventListener('resize', () => camera(false));
+
+toonSaldo();
+bouwNiveaus();
+bouwWeg();
+ververStatus();
+zetKnoppen();
+</script>
+
+</body>
+</html>
