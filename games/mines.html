@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="../style.css">
     <style>
         .mines-wrap { max-width: 520px; margin: 30px auto; padding: 0 16px; text-align: center; }
+        .terug-btn {
+            display: inline-block; margin-bottom: 14px; padding: 8px 16px;
+            color: #fff; text-decoration: none; font-size: 15px; font-weight: 600;
+            background: #213743; border: 1px solid #2f4553; border-radius: 8px;
+            transition: background .2s, border-color .2s;
+        }
+        .terug-btn:hover { background: #2f4553; border-color: #00e701; }
+        .mines-top { text-align: left; }
         .mines-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
         .mines-controls label { display: flex; flex-direction: column; font-size: 14px; gap: 4px; }
         .mines-controls input, .mines-controls select { padding: 8px; border-radius: 6px; border: 1px solid #555; background: #1c1c1c; color: #fff; width: 110px; }
@@ -20,6 +28,7 @@
         .tile:disabled { cursor: default; }
         .mines-info { display: flex; justify-content: space-around; margin: 10px 0; font-size: 16px; }
         .mines-info strong { display: block; font-size: 22px; }
+        #saldoBox { color: #00e701; }
         #minesMsg { min-height: 28px; font-weight: bold; margin-top: 10px; }
         .mines-actions button { padding: 12px 22px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; margin: 4px; }
         #cashoutBtn:disabled { opacity: .4; cursor: default; }
@@ -41,6 +50,10 @@
 </header>
 
 <section class="mines-wrap">
+    <div class="mines-top">
+        <a class="terug-btn" href="../index.html">&larr; Terug naar home</a>
+    </div>
+
     <h2>Mines</h2>
     <p>Vind de diamanten, ontwijk de mijnen. Cash out wanneer je wilt.</p>
 
@@ -57,6 +70,7 @@
     </div>
 
     <div class="mines-info">
+        <div>Saldo<strong id="saldoBox">€0</strong></div>
         <div>Multiplier<strong id="mult">1.00x</strong></div>
         <div>Winst nu<strong id="profit">€0</strong></div>
     </div>
@@ -76,18 +90,31 @@
 
 <script src="../balance.js"></script>
 <script>
-/* ===== SALDO KOPPELING =====
-   Ik weet niet hoe jouw balance.js werkt, dus deze twee functies lezen en
-   schrijven het saldo via #balanceDisplay. Gebruikt balance.js eigen functies
-   (bv. getBalance / setBalance / updateBalance)? Pas dan alleen deze twee aan. */
+/* ===== SALDO =====
+   Gebruikt het saldo van balance.js (getBalance / addBalance / subtractBalance),
+   net als de andere games. Het saldo staat bovenin in het menu en ook hier bij
+   het spel. Is balance.js niet geladen, dan werkt het met het saldo op de pagina. */
+function heeftBalanceJs() {
+    return typeof getBalance === 'function' && typeof addBalance === 'function' && typeof subtractBalance === 'function';
+}
 function getSaldo() {
+    if (heeftBalanceJs()) return getBalance();
     return parseFloat(document.getElementById('balanceDisplay').textContent.replace(/[^0-9.\-]/g, '')) || 0;
 }
-function setSaldo(n) {
-    n = Math.round(n * 100) / 100;
-    if (typeof window.setBalance === 'function') window.setBalance(n);
-    else if (typeof window.updateBalance === 'function') window.updateBalance(n);
-    document.getElementById('balanceDisplay').textContent = '€' + n;
+function toonSaldo(n) {
+    const tekst = '€' + (Math.round(n * 100) / 100);
+    document.getElementById('balanceDisplay').textContent = tekst;
+    document.getElementById('saldoBox').textContent = tekst;
+}
+function wijzigSaldo(verschil) {
+    verschil = Math.round(verschil * 100) / 100;
+    if (heeftBalanceJs()) {
+        if (verschil > 0) addBalance(verschil);
+        else if (verschil < 0) subtractBalance(-verschil);
+        toonSaldo(getBalance());
+    } else {
+        toonSaldo(getSaldo() + verschil);
+    }
 }
 
 /* ===== MINES ===== */
@@ -128,7 +155,7 @@ function start() {
     if (!bet || bet < 1) { msg.textContent = 'Vul een geldige inzet in.'; return; }
     if (bet > getSaldo()) { msg.textContent = 'Te weinig saldo.'; return; }
 
-    setSaldo(getSaldo() - bet);
+    wijzigSaldo(-bet);
     mines = new Set();
     while (mines.size < mineCount) mines.add(Math.floor(Math.random() * SIZE));
     opened = 0; active = true;
@@ -170,7 +197,7 @@ function cashout() {
     if (!active || opened === 0) return;
     active = false;
     const win = bet * multiplier(opened, mineCount);
-    setSaldo(getSaldo() + win);
+    wijzigSaldo(win);
     reveal(-1);
     msg.textContent = 'Uitbetaald: €' + win.toFixed(2) + ' 🎉';
     startBtn.disabled = false; cashBtn.disabled = true;
@@ -178,6 +205,7 @@ function cashout() {
 
 startBtn.onclick = start;
 cashBtn.onclick = cashout;
+toonSaldo(getSaldo());
 buildGrid();
 render();
 </script>
