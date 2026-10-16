@@ -8,6 +8,7 @@
 /* Kijkt alleen naar de map waar dit bestand in staat: staat die 'games'? Dan ligt de rest een map hoger */
 const P = (location.pathname.split("/").slice(-2, -1)[0] || "").toLowerCase() === "games" ? "../" : "";
 document.write('<link rel="stylesheet" href="' + P + 'style.css">');
+document.write('<script src="' + P + 'leeftijd.js"><\/script>');
 </script>
 <style>
 .stage{padding:24px 16px 40px;color:#fff;text-align:center;background:radial-gradient(circle at 50% 0,#2b1a4d,#0e0b1c 70%);transition:background 1s}
@@ -70,7 +71,6 @@ td,th{padding:3px 6px;text-align:center;border-bottom:1px solid #ffffff22}
 
 <section class="stage" id="stage">
 <main class="dv">
-    <a class="back" data-h="games.html">← Terug naar games</a>
     <h1>🐉 Drakenvuur</h1>
     <p class="sub">20 winlijnen · Wild 🐉 · 3 dracheneieren 🥚 = Drakennest bonus</p>
 
