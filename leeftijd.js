@@ -1,4 +1,51 @@
 // =====================================================
+//  TERUG NAAR GAMES-KNOP
+//  Komt automatisch op elke spelpagina (pagina's in de map games/,
+//  dus de pagina's die dit bestand laden als "../leeftijd.js").
+//  - Altijd dezelfde knop, direct onder het menu (of bovenaan als er geen menu is).
+//  - Niet op index.html en games.html (die laden "leeftijd.js" zonder "../").
+//  - Op een pagina geen knop? Zet  data-geen-terugknop  op de <body>.
+//  Wil je de knop ergens anders naartoe laten gaan? Verander TERUG_PAD.
+// =====================================================
+(function () {
+    var script = document.currentScript;
+    var src = script ? (script.getAttribute('src') || '') : '';
+    if (src.indexOf('../') !== 0) return;                 // alleen op spelpagina's
+    var TERUG_PAD = 'games.html';                         // staat in dezelfde map als dit bestand
+    var href = new URL(TERUG_PAD, script.src).href;
+
+    function plaats() {
+        if (document.getElementById('bw-terug')) return;
+        if (document.documentElement.hasAttribute('data-geen-terugknop')) return;
+        if (document.body.hasAttribute('data-geen-terugknop')) return;
+        if (/over-ons\.html$/i.test(location.pathname)) return;
+
+        var menu = document.querySelector('header');
+        var bar = document.createElement('div');
+        bar.id = 'bw-terug';
+        bar.style.cssText = 'text-align:left;' + (menu ? 'padding:14px 20px 0;' : 'padding:0 0 10px;');
+
+        var a = document.createElement('a');
+        a.href = href;
+        a.innerHTML = '&larr; Terug naar games';
+        var normaal = 'display:inline-block;padding:8px 16px;color:#fff;text-decoration:none;' +
+            'font-family:"Segoe UI",Arial,sans-serif;font-size:15px;font-weight:600;' +
+            'background:#213743;border:1px solid #2f4553;border-radius:8px;' +
+            'transition:background .2s,border-color .2s;';
+        a.style.cssText = normaal;
+        a.onmouseenter = function () { a.style.background = '#2f4553'; a.style.borderColor = '#00e701'; };
+        a.onmouseleave = function () { a.style.background = '#213743'; a.style.borderColor = '#2f4553'; };
+        bar.appendChild(a);
+
+        if (menu && menu.parentNode) menu.parentNode.insertBefore(bar, menu.nextSibling);
+        else document.body.insertBefore(bar, document.body.firstChild);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', plaats);
+    else plaats();
+})();
+
+// =====================================================
 //  LEEFTIJDSCONTROLE (18+)
 //  Zet op elke pagina in de <head>:  <script src="leeftijd.js"></script>
 //  (in de map games/ is dat:        <script src="../leeftijd.js"></script>)
